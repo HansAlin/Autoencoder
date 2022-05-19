@@ -64,7 +64,7 @@ def loss_plot(path, trained_autoencoder):
 
   return 0
 
-def plot_signal(x):
+def plot_signal(x,smask):
   for item in x:
     fig, ax = plt.subplots(1,1)
     ax.plot(item)
