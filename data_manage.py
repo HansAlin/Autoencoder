@@ -1,4 +1,7 @@
 import numpy as np
+import pandas as pd
+from creating_models import load_models
+from plot_functions import noise_reduction_curve_multi_models
 
 def normalizing_data(signal, noise):
   """
@@ -114,4 +117,30 @@ def create_data(signal, noise, signal_ratio=0.001, test_run=False ):
 
   return x_train, smask_train, y_train
   
+def adding_noisereduction_values_to_result_table(load_path, save_path, x_test, smask_test):
+	"""
+		Add values to the result table
+	"""
+	
+	models = load_models(load_path)
+	read_results_path = load_path + '/' + 'results.csv'
+	results = pd.read_csv(read_results_path)
 
+	noise_reduction_factors = []
+	true_pos_arrays = []
+	for i, model in enumerate(models):
+		threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factor, true_pos = noise_reduction_curve_multi_models([model],load_path, fpr=0.05, x_test=x_test, smask_test=smask_test,  save_outputs=False)
+
+		results.loc[[i], ['True pos.']] = tpr
+		results.loc[[i], ['False pos.']] = fpr
+
+		noise_reduction_factors.append(noise_reduction_factor)
+		true_pos_arrays.append(true_pos)
+
+	
+	results['Noise reduction'] = noise_reduction_factors
+	results['True pos. array'] = true_pos_arrays
+
+	results = results[['Model name','Epochs','Batch','Kernel','Learning rate','Signal ratio','False pos.','True pos.','Threshold value','Latent space','Number of filters','Flops','Layers','Noise reduction','True pos. array']]
+	
+	results.to_csv(save_path)

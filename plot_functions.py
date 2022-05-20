@@ -291,6 +291,7 @@ def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, pl
       tnr: True negative ratio for best model
       fnr: False negative ratio for best model
       results[0][4]: noise reduction factor for first model
+      results[0][0]: true positive rate
 
   """
   number_of_models = len(models)
@@ -374,7 +375,7 @@ def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, pl
 
     plt.show()
 
-  return threshold_value, tpr, fpr, tnr, fnr, results[0][4]
+  return threshold_value, tpr, fpr, tnr, fnr, results[0][4], results[0][0]
 
 def find_best_model(path,fpr, x_test, smask_test,save_output=True ):
   """
@@ -449,3 +450,49 @@ def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs',
               facecolor=fig.get_facecolor(),
               dpi=150 )
   plt.show()   
+
+def noise_reduction_from_results(results, x_low_lim=0.8, save_path='', best_model=0):
+  """
+    This function takes results from a pandas dataframe
+    and plots the different noise reduction curves
+    Args: 
+      results: a pandas dataframe
+      save_outputs: saving the plot or not
+      x_low_lim: limit for lowest x value on plot (highest=1)
+
+  """
+    
+  for index, row in results.iterrows():
+    tpr = convert_result_dataframe_string_to_list(row['True pos. array'])
+    nr = convert_result_dataframe_string_to_list(row['Noise reduction'])
+    name = row['Model name']
+    plt.plot(tpr, nr, label=name)  
+  if best_model != 0:
+    tpr = convert_result_dataframe_string_to_list(best_model['True pos. array'])  
+    
+  plt.legend()
+  plt.ylabel(f'Noise reduction factor.')
+  plt.xlabel('Efficiency/True Positive Rate')
+  plt.title('Signal efficiency vs. noise reduction factor')
+  plt.semilogy(True)
+  plt.xlim(x_low_lim,1)
+  plt.grid()
+  plt.tight_layout()
+ 
+  if save_path != '':
+    save_path = save_path + '/Signal_efficiency_vs_noise_reduction_factor.png' 
+    plt.savefig(save_path)
+
+  plt.show()
+
+def convert_result_dataframe_string_to_list(result_string):
+  
+  result_string = result_string[1:]
+  result_string = result_string[:-1]
+  result_string = result_string.replace('\n', ' ')
+  result_string = result_string.split(' ')
+  temp_tpr = []
+  for x in result_string:
+    if x != '':
+      temp_tpr.append(float(x))
+  return temp_tpr

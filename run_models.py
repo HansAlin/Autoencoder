@@ -22,7 +22,7 @@ fpr = 0.05
 verbose = 1
 
 x_test, y_test, smask_test, signal, noise, std, mean = load_data(all_signals=all_signals)
-results = pd.DataFrame(columns=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Threshold value', 'Latent space', 'Number of filters', 'Flops', 'Layers', 'Noise reduction'])
+results = pd.DataFrame(columns=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Threshold value', 'Latent space', 'Number of filters', 'Flops', 'Layers', 'Noise reduction','True pos. array'])
 path = '/home/halin/Autoencoder/Models/test_models'
 
 

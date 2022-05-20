@@ -7,7 +7,7 @@ from keras_flops import get_flops
 import numpy as np
 import glob
 from plot_functions import prep_loss_values, loss_plot, hist, noise_reduction_curve_multi_models
-from data_manage import create_data
+#from data_manage import create_data
 
 def encoder(input, kernel=3, latent_space=6, number_of_filters=128, layers=3):
   layer = input
@@ -101,13 +101,13 @@ def create_and_train_model(layers, model_number, latent_space, test_run, path, s
   if plot:
     loss_plot(path, trained_autoencoder)
   bins = hist(path, signal_loss, noise_loss, plot=plot)
-  threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors = noise_reduction_curve_multi_models([autoencoder_model],path, x_test=x_test, smask_test=smask_test, fpr=fpr, plot=plot)
+  threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors, true_pos_array = noise_reduction_curve_multi_models([autoencoder_model],path, x_test=x_test, smask_test=smask_test, fpr=fpr, plot=plot)
 
   flops = get_flops(autoencoder_model)
-  #TODO get flops to work
+  
   autoencoder_model.save((path + '.h5'))
 
-  return model_name, epochs, batch, kernel, learning_rate, signal_ratio, fpr, tpr, threshold_value, latent_space, number_of_filters, flops, layers, noise_reduction_factors  
+  return model_name, epochs, batch, kernel, learning_rate, signal_ratio, fpr, tpr, threshold_value, latent_space, number_of_filters, flops, layers, noise_reduction_factors, true_pos_array  
 
 def load_models(path):
   """
