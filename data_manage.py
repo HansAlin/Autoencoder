@@ -144,3 +144,16 @@ def adding_noisereduction_values_to_result_table(load_path, save_path, x_test, s
 	results = results[['Model name','Epochs','Batch','Kernel','Learning rate','Signal ratio','False pos.','True pos.','Threshold value','Latent space','Number of filters','Flops','Layers','Noise reduction','True pos. array']]
 	
 	results.to_csv(save_path)
+
+def df_of_best_models(best_models, save_path, path='/home/halin/Autoencoder/Models/'):
+  
+  best_results = pd.DataFrame(columns=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Threshold value', 'Latent space', 'Number of filters', 'Flops', 'Layers', 'Noise reduction','True pos. array'])
+  for i, model in enumerate(best_models):
+    folder = model[:7]
+    results = pd.read_csv(path + folder + '/' + 'results.csv')
+    best_row_model = results.loc[results['Model name'] == model]
+    
+    best_results = best_results.append(best_row_model)
+    
+  
+  best_results.to_csv(save_path)

@@ -7,7 +7,7 @@ from keras_flops import get_flops
 import numpy as np
 import glob
 from plot_functions import prep_loss_values, loss_plot, hist, noise_reduction_curve_multi_models
-#from data_manage import create_data
+#
 
 def encoder(input, kernel=3, latent_space=6, number_of_filters=128, layers=3):
   layer = input
@@ -87,12 +87,14 @@ def  train_autoencoder(model, x_train, epochs=50, batch=16, verbose=0):
   return autoencoder
 
 def create_and_train_model(layers, model_number, latent_space, test_run, path, signal, noise, verbose, x_test, smask_test, kernel, epochs=5, batch=256, learning_rate=0.0005, signal_ratio=1, plot=False, fpr=0.05, number_of_filters=128):
+  from data_manage import create_data
   prefix = path[-7:]
   model_name = prefix + '_model_' + str(model_number)
   print(model_name)
   path = path + '/' + model_name
 
   x_train, smask_train, y_train = create_data(signal, noise, signal_ratio=signal_ratio, test_run=test_run )
+  
   autoencoder_model = create_autoencoder_model(x_train, kernel=kernel, latent_space=latent_space, number_of_filters=number_of_filters, layers=layers, learning_rate=learning_rate )
   autoencoder_model.summary()
   #keras.utils.plot_model(autoencoder_model, to_file=(path + '.jpg'), show_layer_activations=True, show_dtype=True, show_shapes=True)

@@ -60,7 +60,7 @@ def loss_plot(path, trained_autoencoder):
   plt.legend()
   path = path + '_loss_plot.png'
   plt.savefig(path)
-  plt.show()
+  plt.cla()
 
   return 0
 
@@ -127,7 +127,8 @@ def hist(path, signal_loss, noise_loss, resolution=100, plot=True):
     plt.ylabel('Counts')
     path = path + '_hist.png'
     plt.savefig(path)
-    plt.show()
+    plt.cla()
+
     
     
   return bins
@@ -189,6 +190,7 @@ def roc_curve(path, signal_loss, noise_loss, bins,fpr=0.05, plot=True):
     path = path + '_roc.png'
     plt.savefig(path)
     plt.show()
+    plt.cla()
 
   return threshold_value, tpr, fpr, tnr, fnr
 
@@ -261,8 +263,8 @@ def noise_reduction_curve(path, signal_loss, noise_loss, fpr=0.05, plot=True):
     plt.savefig(path)
     
     plt.show()
-    # plt.plot(false_pos, true_pos)
-    # plt.show()
+    plt.cla()
+    
   return threshold_value, tpr, fpr, tnr, fnr  
 
 def confusion_matrix(threshold_value, tpr, fpr, tnr, fnr):
@@ -300,6 +302,7 @@ def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, pl
     
     model = models[j]
     not_found_treshold_value = True
+    #TODO Make signal_loss and noise_loss as arguments to function instead
     signal_loss, noise_loss = prep_loss_values(model, x_test, smask_test)
     
     max_value = np.max(signal_loss)
@@ -374,6 +377,7 @@ def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, pl
       plt.savefig(path)
 
     plt.show()
+    plt.cla()
 
   return threshold_value, tpr, fpr, tnr, fnr, results[0][4], results[0][0]
 
@@ -422,7 +426,10 @@ def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs',
       table_name: name on the file with the result
       headers: The columns that is going to be plotted
   """
-  atempt = path[-7:]
+  if 'Best_models' in path:
+    atempt = 'Best_models'
+  else:  
+    atempt = path[-7:]
   result_path = path + '/' + table_name
   results = pd.read_csv(result_path)
   fig, ax = plt.subplots()#1,1, figsize=(12,4)
@@ -449,9 +456,10 @@ def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs',
               edgecolor=fig.get_edgecolor(),
               facecolor=fig.get_facecolor(),
               dpi=150 )
-  plt.show()   
+  plt.show() 
+  plt.cla()  
 
-def noise_reduction_from_results(results, x_low_lim=0.8, save_path='', best_model=0):
+def noise_reduction_from_results(results, best_model, x_low_lim=0.8, save_path='', name_prefix=''):
   """
     This function takes results from a pandas dataframe
     and plots the different noise reduction curves
@@ -461,14 +469,20 @@ def noise_reduction_from_results(results, x_low_lim=0.8, save_path='', best_mode
       x_low_lim: limit for lowest x value on plot (highest=1)
 
   """
-    
+    #TODO get the labels right!
   for index, row in results.iterrows():
     tpr = convert_result_dataframe_string_to_list(row['True pos. array'])
     nr = convert_result_dataframe_string_to_list(row['Noise reduction'])
-    name = row['Model name']
-    plt.plot(tpr, nr, label=name)  
-  if best_model != 0:
-    tpr = convert_result_dataframe_string_to_list(best_model['True pos. array'])  
+    name = row['Model name'][0]
+    plt.plot(tpr, nr, label=name) 
+    
+  if name_prefix != '':
+    value1 = best_model['True pos. array'][0]
+    value2 = best_model['Noise reduction'][0]
+    tpr = convert_result_dataframe_string_to_list(value1) 
+    nr = convert_result_dataframe_string_to_list(value2) 
+    model_name = best_model['Model name'][0]
+    plt.plot(tpr, nr, label=model_name)
     
   plt.legend()
   plt.ylabel(f'Noise reduction factor.')
@@ -480,10 +494,11 @@ def noise_reduction_from_results(results, x_low_lim=0.8, save_path='', best_mode
   plt.tight_layout()
  
   if save_path != '':
-    save_path = save_path + '/Signal_efficiency_vs_noise_reduction_factor.png' 
+    save_path = save_path + '/' + name_prefix + 'Signal_efficiency_vs_noise_reduction_factor.png' 
     plt.savefig(save_path)
 
   plt.show()
+  plt.cla()
 
 def convert_result_dataframe_string_to_list(result_string):
   

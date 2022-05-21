@@ -11,7 +11,7 @@ for device in physical_devices:
     tf.config.experimental.set_memory_growth(device, True)
 
 import numpy as np
-#import seaborn as sns
+import seaborn as sns
 import pandas as pd
 from matplotlib import pyplot as plt
 from tensorflow import keras
