@@ -276,88 +276,85 @@ def confusion_matrix(threshold_value, tpr, fpr, tnr, fnr):
   print(f'Confusion matrix with threshold value at {threshold_value:.2e}')  
   print(tabulate(tabel, headers='firstrow'))  
 
-def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, signal_loss, noise_loss, plot=True, x_low_lim=0.8, save_outputs=True, models_to_plot=[]):
+def noise_reduction_curve_single_model(model_name, save_path, fpr, x_test, smask_test, signal_loss, noise_loss, plot=True, x_low_lim=0.8):
   """
     This function takes signal and noise loss as arguments. They are 
-    arrays from mse calculating.
-    Bins is taken from hist
+    arrays from mse calculating. It calculates tpr, fpr, noise_reduction_factor
+    tnr, se below.
+    
     Args: 
-      models: a list of keras models
+      model_name: model_name
       path: where the plots saves
       fpr: False Positive Rate 
       x_low_lim: limit for lowest x value on plot (highest=1)
+      signal_loss: calculated in prep_loss_values()
+      noise_loss: calculated in prep_loss_values()
     Returns:
       thershold: value for a specific False Positive Ratio fpr for best model
       tpr: True positive ratio for best model
       fpr: False positive ratio for best model
       tnr: True negative ratio for best model
       fnr: False negative ratio for best model
-      results[0][4]: noise reduction factor for first model
-      results[0][0]: true positive rate
+      noise_reduction_factor: noise reduction factor for first model
+      true_pos: true positive rate
 
   """
   #TODO signal_loss and noise_loss comes from one model but several models can be loaded to
   # the function.!!!!
-  number_of_models = len(models)
-  results = [0]*number_of_models
-  for j in range(number_of_models):
+  
+  results = []
+
+  not_found_treshold_value = True
+  
+  max_value = np.max(signal_loss)
+  min_value = np.min(noise_loss)
+  low_lim = np.floor(np.log10(min_value))
+  high_lim = np.floor(np.log10(max_value))
+  bins = np.logspace(low_lim,high_lim , 1000)
+
+
+  threshold_value = 0
+  true_pos = np.zeros(len(bins))
+  false_pos = np.zeros(len(bins))
+  true_neg = np.zeros(len(bins))
+  false_neg = np.zeros(len(bins))
+  noise_reduction_factor = np.zeros(len(bins))
+
+
+  tpr = 0
+  for i, limit in enumerate(bins):
+  
+    true_pos[i] = np.count_nonzero(signal_loss > limit)/len(signal_loss)
+    false_pos[i] =np.count_nonzero(noise_loss > limit)/len(noise_loss)
+    true_neg[i] = 1 - false_pos[i]
+    false_neg[i] = 1 - true_pos[i]
+  
+
+    if (true_neg[i] < 1):
+      noise_reduction_factor[i] = 1 / ( 1 - true_neg[i])
+    else:
+      noise_reduction_factor[i] = len(noise_loss)  
     
-    model = models[j]
-    not_found_treshold_value = True
     
-    max_value = np.max(signal_loss)
-    min_value = np.min(noise_loss)
-    low_lim = np.floor(np.log10(min_value))
-    high_lim = np.floor(np.log10(max_value))
-    bins = np.logspace(low_lim,high_lim , 1000)
-
-
-    threshold_value = 0
-    true_pos = np.zeros(len(bins))
-    false_pos = np.zeros(len(bins))
-    true_neg = np.zeros(len(bins))
-    false_neg = np.zeros(len(bins))
-    noise_reduction_factor = np.zeros(len(bins))
-
-
-    tpr = 0
-    for i, limit in enumerate(bins):
-    
-      true_pos[i] = np.count_nonzero(signal_loss > limit)/len(signal_loss)
-      false_pos[i] =np.count_nonzero(noise_loss > limit)/len(noise_loss)
-      true_neg[i] = 1 - false_pos[i]
-      false_neg[i] = 1 - true_pos[i]
-    
-
-      if (true_neg[i] < 1):
-        noise_reduction_factor[i] = 1 / ( 1 - true_neg[i])
-      else:
-        noise_reduction_factor[i] = len(noise_loss)  
+    if false_pos[i] < fpr and not_found_treshold_value:
+      threshold_value = limit
+      tpr = true_pos[i]
+      not_found_treshold_value = False
       
-      
-      if false_pos[i] < fpr and not_found_treshold_value:
-        threshold_value = limit
-        tpr = true_pos[i]
-        not_found_treshold_value = False
-        
 
 
-    fnr = 1 - tpr
-    tnr = 1 - fpr
-    
+  fnr = 1 - tpr
+  tnr = 1 - fpr
+  
 
-    results[j] = [true_pos, true_neg, false_pos, false_neg, noise_reduction_factor]
-
-    
+   
 
   
   if plot:
-    if len(models_to_plot) < 1:
-      models_to_plot = np.arange(0,len(models))
+    if model_name[0] == '_':
+      model_name = 'M' + model_name
 
-    for k in models_to_plot:
-      model_name = 'model ' + str(k+1)
-      plt.plot(results[k][0],results[k][4], label=model_name)  
+    plt.plot(true_pos,noise_reduction_factor, label=model_name)  
       
     noise_events = np.count_nonzero(~smask_test)
 
@@ -368,18 +365,16 @@ def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, si
     plt.semilogy(True)
     plt.xlim(x_low_lim,1)
     plt.grid()
-    if len(models) > 1:
-      path = path + '/Signal_efficiency_vs_noise_reduction_factor_all_models.png'
-    else:
-      path = path + '_Signal_efficiency_vs_noise_reduction_factor.png'  
+    #TODO fix save path
+    save_path = save_path + '_Signal_efficiency_vs_noise_reduction_factor.png'  
     plt.tight_layout()
-    if save_outputs:
-      plt.savefig(path)
+    
+    plt.savefig(save_path)
 
     plt.show()
     plt.cla()
 
-  return threshold_value, tpr, fpr, tnr, fnr, results[0][4], results[0][0]
+  return threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factor, true_pos
 
 def find_best_model(path,fpr, x_test, smask_test,save_output=True ):
   """
@@ -418,7 +413,7 @@ def find_best_model(path,fpr, x_test, smask_test,save_output=True ):
   best_model['True pos.'] = tpr
   print(best_model)
 
-def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Latent space', 'Flops', 'Layers']):
+def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs', 'Batch','Number of filters', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Latent space', 'Sub conv layers', 'Flops', 'Layers']):
   """
     This function plots the result from the atempt. The results are pandas dataframe.
     Args:

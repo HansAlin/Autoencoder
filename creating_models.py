@@ -67,7 +67,7 @@ def  train_autoencoder(model, x_train, epochs=50, batch=16, verbose=0):
   early_stopping = keras.callbacks.EarlyStopping(
                                     monitor="mse",
                                     min_delta=0,
-                                    patience=5,
+                                    patience=3,
                                     verbose=0,
                                     mode="auto",
                                     baseline=None,
@@ -117,7 +117,7 @@ def create_and_train_model(single_model, old_model,  layers, model_number, laten
   if plot:
     pf.loss_plot(path, trained_autoencoder)
   bins = pf.hist(path, signal_loss, noise_loss, plot=plot)
-  threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors, true_pos_array = pf.noise_reduction_curve_multi_models([autoencoder_model],path, x_test=x_test, smask_test=smask_test, fpr=fpr, plot=plot, signal_loss=signal_loss, noise_loss=noise_loss)
+  threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors, true_pos_array = pf.noise_reduction_curve_single_model(model_name=model_name, save_path=path, x_test=x_test, smask_test=smask_test, fpr=fpr, plot=plot, signal_loss=signal_loss, noise_loss=noise_loss)
 
   flops = get_flops(autoencoder_model)
   
