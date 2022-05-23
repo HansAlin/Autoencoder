@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from creating_models import load_models
-from plot_functions import noise_reduction_curve_multi_models
+import creating_models as cm
+import plot_functions as pf
 
 def normalizing_data(signal, noise):
   """
@@ -19,7 +19,7 @@ def unnormalizing_data(normalized_data, std, mean):
   data = normalized_data*std + mean
   return data
 
-def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/'):
+def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/', small_test_set=1000):
   """
     This function loads data from ARIANNA group, downloaded localy
     Args:
@@ -43,7 +43,7 @@ def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/'):
   n_classes = 2
  
   noise, signal, std, mean = normalizing_data(signal, noise)
-
+  
   shuffle = np.arange(noise.shape[0], dtype=np.int)
   np.random.shuffle(shuffle)
   noise = noise[shuffle]
@@ -55,7 +55,7 @@ def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/'):
   if all_signals:
     number_of_test_samples = len(signal)
   else:  
-    number_of_test_samples = 20000
+    number_of_test_samples = small_test_set
 
   
 
@@ -121,15 +121,15 @@ def adding_noisereduction_values_to_result_table(load_path, save_path, x_test, s
 	"""
 		Add values to the result table
 	"""
-	
-	models = load_models(load_path)
+	#TODO check that pf.noise.reduction_curve_multi_models
+	models = cm.load_models(load_path)
 	read_results_path = load_path + '/' + 'results.csv'
 	results = pd.read_csv(read_results_path)
 
 	noise_reduction_factors = []
 	true_pos_arrays = []
 	for i, model in enumerate(models):
-		threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factor, true_pos = noise_reduction_curve_multi_models([model],load_path, fpr=0.05, x_test=x_test, smask_test=smask_test,  save_outputs=False)
+		threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factor, true_pos = pf.noise_reduction_curve_multi_models([model],load_path, fpr=0.05, x_test=x_test, smask_test=smask_test,  save_outputs=False)
 
 		results.loc[[i], ['True pos.']] = tpr
 		results.loc[[i], ['False pos.']] = fpr
@@ -145,7 +145,7 @@ def adding_noisereduction_values_to_result_table(load_path, save_path, x_test, s
 	
 	results.to_csv(save_path)
 
-def df_of_best_models(best_models, save_path, path='/home/halin/Autoencoder/Models/'):
+def make_dataframe_of_collections_of_models(best_models, save_path, path='/home/halin/Autoencoder/Models/'):
   
   best_results = pd.DataFrame(columns=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Threshold value', 'Latent space', 'Number of filters', 'Flops', 'Layers', 'Noise reduction','True pos. array'])
   for i, model in enumerate(best_models):

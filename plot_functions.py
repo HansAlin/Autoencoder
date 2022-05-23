@@ -276,7 +276,7 @@ def confusion_matrix(threshold_value, tpr, fpr, tnr, fnr):
   print(f'Confusion matrix with threshold value at {threshold_value:.2e}')  
   print(tabulate(tabel, headers='firstrow'))  
 
-def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, plot=True, x_low_lim=0.8, save_outputs=True, models_to_plot=[]):
+def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, signal_loss, noise_loss, plot=True, x_low_lim=0.8, save_outputs=True, models_to_plot=[]):
   """
     This function takes signal and noise loss as arguments. They are 
     arrays from mse calculating.
@@ -296,14 +296,14 @@ def noise_reduction_curve_multi_models(models, path, fpr, x_test, smask_test, pl
       results[0][0]: true positive rate
 
   """
+  #TODO signal_loss and noise_loss comes from one model but several models can be loaded to
+  # the function.!!!!
   number_of_models = len(models)
   results = [0]*number_of_models
   for j in range(number_of_models):
     
     model = models[j]
     not_found_treshold_value = True
-    #TODO Make signal_loss and noise_loss as arguments to function instead
-    signal_loss, noise_loss = prep_loss_values(model, x_test, smask_test)
     
     max_value = np.max(signal_loss)
     min_value = np.min(noise_loss)
@@ -469,22 +469,32 @@ def noise_reduction_from_results(results, best_model, x_low_lim=0.8, save_path='
       x_low_lim: limit for lowest x value on plot (highest=1)
 
   """
-    #TODO get the labels right!
-  for index, row in results.iterrows():
-    tpr = convert_result_dataframe_string_to_list(row['True pos. array'])
-    nr = convert_result_dataframe_string_to_list(row['Noise reduction'])
-    name = row['Model name'][0]
-    plt.plot(tpr, nr, label=name) 
-    
+  
+  fig, ax = plt.subplots()  
   if name_prefix != '':
     value1 = best_model['True pos. array'][0]
     value2 = best_model['Noise reduction'][0]
     tpr = convert_result_dataframe_string_to_list(value1) 
     nr = convert_result_dataframe_string_to_list(value2) 
     model_name = best_model['Model name'][0]
-    plt.plot(tpr, nr, label=model_name)
+    ax.plot(tpr, nr, label='Best model ' + model_name)
+  linestyles = ['-', '--', '-.', ':']  
+  i = 0
+  for index, row in results.iterrows():
+    tpr = convert_result_dataframe_string_to_list(row['True pos. array'])
+    nr = convert_result_dataframe_string_to_list(row['Noise reduction'])
+    name = row['Model name']
+    if name[0] == '_':
+      name = 'M' + name
+    if i > 3:
+      i = i - 4  
+    linestyle = linestyles[i]
+    ax.plot(tpr, nr, label=name, linestyle=linestyle) 
+    i += 1
+      
+  
     
-  plt.legend()
+  ax.legend()
   plt.ylabel(f'Noise reduction factor.')
   plt.xlabel('Efficiency/True Positive Rate')
   plt.title('Signal efficiency vs. noise reduction factor')
@@ -494,7 +504,7 @@ def noise_reduction_from_results(results, best_model, x_low_lim=0.8, save_path='
   plt.tight_layout()
  
   if save_path != '':
-    save_path = save_path + '/' + name_prefix + 'Signal_efficiency_vs_noise_reduction_factor.png' 
+    save_path = save_path +'/' + name_prefix + 'Signal_efficiency_vs_noise_reduction_factor.png' 
     plt.savefig(save_path)
 
   plt.show()
@@ -511,3 +521,31 @@ def convert_result_dataframe_string_to_list(result_string):
     if x != '':
       temp_tpr.append(float(x))
   return temp_tpr
+
+def plot_performance(model, x, smask, save_path):
+  number_of_plots = 3
+  x_signal = x[smask][:number_of_plots]
+  x_noise = x[~smask][:number_of_plots]
+  
+  x_pred_signal = model.predict(x_signal)
+  x_pred_noise = model.predict(x_noise)
+  
+  for item in x:
+    fig, ax = plt.subplots(number_of_plots,1)
+    ax.plot(item)
+    fig.tight_layout()
+    plt.show()
+
+
+
+  for trace in x[smask][:2]:
+    fig, ax = plt.subplots(1, 1)
+    ax.plot(trace)
+    fig.tight_layout()
+    plt.show()
+    # plot a few noise events
+  for noise in x[~smask][:2]:
+    fig, ax = plt.subplots(1,1)
+    ax.plot(noise)
+    fig.tight_layout()
+    plt.show()     
