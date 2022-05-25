@@ -1,3 +1,12 @@
+### Tensorflow 2.2  ###########
+import os
+from gpuutils import GpuUtils
+GpuUtils.allocate(gpu_count=1, framework='keras')
+import tensorflow as tf
+physical_devices = tf.config.list_physical_devices('GPU')
+for device in physical_devices:
+    tf.config.experimental.set_memory_growth(device, True)
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from creating_models import load_models
@@ -6,7 +15,7 @@ import plot_functions as pf
 import data_manage as dm
 
 import numpy as np
-from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.models import load_model
 
 
 ############   Coolecting best models  ###################
@@ -28,31 +37,15 @@ from tensorflow.keras.models import Sequential, load_model
 # save_path ='/home/halin/Autoencoder/Models/test_models' 
 # pf.noise_reduction_from_results(pd.read_csv(load_path + '/results.csv'), x_low_lim=0.8, save_path= save_path, name_prefix='Incl_best_model_', best_model=best_model )
 
-###########  Load a model and look at the structure  ###########
-path = '/home/halin/Autoencoder/Models/CNN_003/CNN_003_model_9.h5'
-model = load_model(path)
-x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data()
-x_train, smask_train, y_train = dm.create_data(signal,noise)
 
 
-##########   Test performance  #########
-x_noise = x_test[~smask_test]
-x_pred_noise = model.predict(x_noise)[0]
-x_noise = dm.unnormalizing_data(x_noise[0], std=std, mean=mean)
-x_pred_noise = dm.unnormalizing_data(x_pred_noise, std=std, mean=mean)
+############  Add models to a dataframe   ##############
 
-x_signal = x_test[smask_test]
-x_pred_signal = model.predict(x_signal)[0]
-x_signal = dm.unnormalizing_data(x_signal[0], std=std, mean=mean)
-x_pred_signal = dm.unnormalizing_data(x_pred_signal, std=std, mean=mean)
-plt.plot(x_noise[0], label="Original noise")
-plt.plot(x_pred_noise, label="Predicted noise")
-plt.legend()
-plt.savefig('/home/halin/Autoencoder/Models/test_models/Noise_and_pred_noise')
-plt.cla()
-plt.plot(x_signal[0], label="Original signal")
-plt.plot(x_pred_signal, label="Predicted signal")
-plt.legend()
-plt.savefig('/home/halin/Autoencoder/Models/test_models/Signal_and_pred_signal')
-# print(model.summary())
-#pf.plot_table()
+# model_names = ['CNN_101_model_5', 'CNN_003_model_6']
+# main_path = '/home/halin/Autoencoder/Models'
+# results = dm.create_dataframe_of_results(path=main_path,model_names=model_names)
+# result_path = '/home/halin/Autoencoder/Models/mixed_models'
+# csv_result_path = result_path + '/collected_results.csv'
+# results.to_csv(csv_result_path)
+# pf.plot_table(path=result_path, table_name='collected_results.csv' )
+# pf.noise_reduction_from_results(pd.read_csv(result_path + '/collected_results.csv'), x_low_lim=0.8, save_path= result_path, name_prefix='', best_model='' )

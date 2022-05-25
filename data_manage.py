@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import creating_models as cm
 import plot_functions as pf
+import glob
+
 
 def normalizing_data(signal, noise):
   """
@@ -157,3 +159,22 @@ def make_dataframe_of_collections_of_models(best_models, save_path, path='/home/
     
   
   best_results.to_csv(save_path)
+
+def create_dataframe_of_results( model_names, path='/home/halin/Autoencoder/Models'):
+  results_to_return = ''
+  first_result = True
+  list_of_results_csv = glob.glob(path + '/**/*' + '.csv', recursive=True)
+  for csv_result_path in list_of_results_csv:
+    last_part = csv_result_path[-12:] 
+    if last_part == '/results.csv':
+      results = pd.read_csv(csv_result_path)
+      for model_name in model_names:
+        model_result = results.loc[results['Model name'] == model_name]
+        if first_result:
+          if  not model_result.empty:
+            results_to_return = model_result
+            first_result = False
+        else:
+          if  not model_result.empty:
+            results_to_return = results_to_return.append(model_result)  
+  return results_to_return        

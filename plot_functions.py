@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
 from tensorflow.keras.models import load_model
+import data_manage as dm
 
 
 def find_signal(model, treshold, x, smask, under_treshold=True):
@@ -413,7 +414,7 @@ def find_best_model(path,fpr, x_test, smask_test,save_output=True ):
   best_model['True pos.'] = tpr
   print(best_model)
 
-def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs', 'Batch','Number of filters', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Latent space', 'Sub conv layers', 'Flops', 'Layers']):
+def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs', 'Batch','Number of filters', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Latent space', 'Sub conv layers', 'Flops', 'Layers','Act. last layer','Any act. bottle']):
   """
     This function plots the result from the atempt. The results are pandas dataframe.
     Args:
@@ -517,30 +518,44 @@ def convert_result_dataframe_string_to_list(result_string):
       temp_tpr.append(float(x))
   return temp_tpr
 
-def plot_performance(model, x, smask, save_path):
-  number_of_plots = 3
-  x_signal = x[smask][:number_of_plots]
-  x_noise = x[~smask][:number_of_plots]
+def plot_performance(path, x_test, smask_test, save_path, std, mean):
   
-  x_pred_signal = model.predict(x_signal)
-  x_pred_noise = model.predict(x_noise)
+  model = load_model(path)
+  print(model.summary())
+
   
-  for item in x:
-    fig, ax = plt.subplots(number_of_plots,1)
-    ax.plot(item)
-    fig.tight_layout()
-    plt.show()
+  x_noise = x_test[~smask_test]
+  x_noise = x_noise[:10]      #small subset
+  x_pred_noise = model.predict(x_noise)[0]
+  x_noise = dm.unnormalizing_data(x_noise[0], std=std, mean=mean)
+  x_pred_noise = dm.unnormalizing_data(x_pred_noise, std=std, mean=mean)
+  res_noise = x_noise - x_pred_noise
 
+  x_signal = x_test[smask_test]
+  x_signal = x_signal[:10]    #subset
+  x_pred_signal = model.predict(x_signal)[0]
+  x_signal = dm.unnormalizing_data(x_signal[0], std=std, mean=mean)
+  x_pred_signal = dm.unnormalizing_data(x_pred_signal, std=std, mean=mean)
+  res_signal = x_signal - x_pred_signal
+  end_name = path[-18:-3]
 
+  fig, axis = plt.subplots(2,2)
 
-  for trace in x[smask][:2]:
-    fig, ax = plt.subplots(1, 1)
-    ax.plot(trace)
-    fig.tight_layout()
-    plt.show()
-    # plot a few noise events
-  for noise in x[~smask][:2]:
-    fig, ax = plt.subplots(1,1)
-    ax.plot(noise)
-    fig.tight_layout()
-    plt.show()     
+  axis[0,0].plot(x_noise, label="Original noise")
+  axis[0,0].plot(x_pred_noise, label="Predicted noise")
+  axis[0,0].legend()
+  axis[0,0].set_title(f'Noise')
+
+  axis[0,1].plot(x_signal, label="Original signal")
+  axis[0,1].plot(x_pred_signal, label="Predicted signal")
+  axis[0,1].set_title(f'Signal')
+  axis[0,1].legend()
+
+  axis[1,0].plot(res_noise)
+  axis[1,0].set_title(f'Noise residuals')
+
+  axis[1,1].plot(res_signal)
+  axis[1,1].set_title(f'Signal residuals')
+  fig.suptitle(f'Model {end_name}', fontsize=12)
+  plt.tight_layout()
+  plt.savefig(save_path + f'/Signal_and_noise_pred_{end_name}')

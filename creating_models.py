@@ -10,7 +10,7 @@ import plot_functions as pf
 import data_manage as dm
 
 
-def encoder(input, kernel=3, latent_space=6, number_of_filters=128, layers=3, convs = 1):
+def encoder(input, kernel=3, latent_space=6, number_of_filters=128, layers=3, convs = 1, activation_function_bottleneck=True):
   layer = input
   for i in range(layers):
     for j in range(convs):
@@ -18,17 +18,20 @@ def encoder(input, kernel=3, latent_space=6, number_of_filters=128, layers=3, co
     layer = MaxPooling1D(pool_size=2)(layer)
 
   layer = Flatten()(layer)
-  encoder = Dense(latent_space)(layer)
+  if activation_function_bottleneck:
+    encoder = Dense(latent_space, activation='relu')(layer)
+  else: 
+    encoder = Dense(latent_space)(layer)  
 
   return encoder
 
-def decoder(input, data_size=100, kernel=3, latent_space=6, number_of_filters=128, layers=2, convs=1):
+def decoder(input, data_size=100, kernel=3, latent_space=6, number_of_filters=128, layers=2, convs=1, activation_function_last_layer='tanh'):
   first_layer_size = data_size
   for j in range(layers):
     first_layer_size = np.int(np.floor(first_layer_size/2))
    
   layer = input
-  layer = Dense((first_layer_size*number_of_filters))(layer)
+  layer = Dense((first_layer_size*number_of_filters), activation='relu')(layer)
   layer = Reshape((first_layer_size, number_of_filters))(layer)
   
   for i in range(layers):
@@ -41,21 +44,21 @@ def decoder(input, data_size=100, kernel=3, latent_space=6, number_of_filters=12
       layer = keras.layers.ZeroPadding1D(1)(layer)
 
 
-  layer = Conv1D(filters=1, kernel_size=kernel, strides=1, padding='same')(layer)
+  layer = Conv1D(filters=1, kernel_size=kernel, strides=1, padding='same', activation=activation_function_last_layer)(layer)
 
   return layer  
 
-def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layers,convs):
-  enc = encoder(input, kernel, latent_space, number_of_filters, layers,convs)
-  autoencoder = decoder(enc, data_size, kernel, latent_space, number_of_filters, layers,convs )
+def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck, activation_function_last_layer):
+  enc = encoder(input, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck)
+  autoencoder = decoder(enc, data_size, kernel, latent_space, number_of_filters, layers,convs,activation_function_last_layer)
   return autoencoder
 
-def create_autoencoder_model(data,kernel, latent_space, number_of_filters, layers, convs, learning_rate=0.0005):
+def create_autoencoder_model(data,kernel, latent_space, number_of_filters, layers, convs,  activation_function_bottleneck, activation_function_last_layer, learning_rate=0.0005):
   data_size = len(data[0])
   adam = keras.optimizers.Adam(learning_rate=learning_rate)
   input_data = keras.Input(shape=data[1].shape)
   
-  model = keras.Model(inputs=input_data, outputs=autoencoder(input_data, data_size, kernel, latent_space, number_of_filters, layers=layers, convs=convs))
+  model = keras.Model(inputs=input_data, outputs=autoencoder(input_data, data_size, kernel, latent_space, number_of_filters, layers, convs,  activation_function_bottleneck, activation_function_last_layer))
   model.compile(
       loss = 'mse',
       optimizer = adam,
@@ -63,11 +66,11 @@ def create_autoencoder_model(data,kernel, latent_space, number_of_filters, layer
   )
   return model              
 
-def  train_autoencoder(model, x_train, epochs=50, batch=16, verbose=0):
+def train_autoencoder(model, x_train, epochs=50, batch=16, verbose=0):
   early_stopping = keras.callbacks.EarlyStopping(
                                     monitor="mse",
                                     min_delta=0,
-                                    patience=3,
+                                    patience=5,
                                     verbose=0,
                                     mode="auto",
                                     baseline=None,
@@ -86,7 +89,7 @@ def  train_autoencoder(model, x_train, epochs=50, batch=16, verbose=0):
                           )
   return autoencoder
 
-def create_and_train_model(single_model, old_model,  layers, model_number, latent_space, test_run, path, signal, noise, verbose, x_test, smask_test, kernel, convs,epochs=5, batch=256, learning_rate=0.0005, signal_ratio=1, plot=False, fpr=0.05, number_of_filters=128, _old_model=False):
+def create_and_train_model(single_model, old_model,  layers, model_number, latent_space, test_run, path, signal, noise, verbose, x_test, smask_test, kernel, convs, activation_function_bottleneck, activation_function_last_layer, epochs=5, batch=256, learning_rate=0.0005, signal_ratio=1, plot=False, fpr=0.05, number_of_filters=128, _old_model=False):
   
   prefix = path[-7:]
   
@@ -99,7 +102,15 @@ def create_and_train_model(single_model, old_model,  layers, model_number, laten
     autoencoder_model = old_model
   else:  
     if model_number == 1 or  not single_model:
-      autoencoder_model = create_autoencoder_model(x_train, kernel=kernel, latent_space=latent_space, number_of_filters=number_of_filters, layers=layers, convs=convs, learning_rate=learning_rate )
+      autoencoder_model = create_autoencoder_model(data=x_train,
+                                                   kernel=kernel, 
+                                                   latent_space=latent_space, 
+                                                   number_of_filters=number_of_filters, 
+                                                   layers=layers, 
+                                                   convs=convs, 
+                                                   learning_rate=learning_rate,
+                                                   activation_function_last_layer=activation_function_last_layer,
+                                                   activation_function_bottleneck=activation_function_bottleneck )
       total_epochs = epochs
     else:
       previus_model_path = path + '/' +prefix + '_model_' + str(model_number - 1) + '.h5'
@@ -145,3 +156,4 @@ def load_models(path):
       models.append(load_model(path))
 
   return models
+

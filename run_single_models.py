@@ -36,29 +36,32 @@ import numpy as np
 
 
 
+
 # Hyper parameters
 batches = [1024]
 learning_rates = [10**(-4)]
 signal_ratios = [0]
 kernels = [3]
-latent_spaces = [2,32]#
+latent_spaces = [256]#
 number_of_filters = [128]
-layers = [1,2]
+layers = [1]
 number_of_single_models = 1
 single_model = False
-epochs = 400
-sub_conv_layers = [1,2]
+epochs = 800
+sub_conv_layers = [1]
 
 model_number = 1
 test_run = False
 all_signals = True
 plot =True
-small_test_set = 20000
+small_test_set = 2000
+activation_function_bottlenecks= [False,True]
+activation_function_last_layers=['tanh', 'linear']
 
 fpr = 0.05
 verbose = 1
 
-path = '/home/halin/Autoencoder/Models/CNN_101'
+path = '/home/halin/Autoencoder/Models/CNN_103'
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=all_signals, small_test_set=small_test_set)
 
 
@@ -66,13 +69,13 @@ x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=
 load_old_results = False
 _if_old_model = False
 old_model = ''
-old_model_path = ''
+old_model_path = ''#'/home/halin/Autoencoder/Models/CNN_102/CNN_102_model_5.h5'
 
 
 if load_old_results:
   results = pd.read_csv(path + '/results.csv')
 else:  
-  results = pd.DataFrame(columns=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Sub conv layers', 'Signal ratio', 'False pos.', 'True pos.', 'Threshold value', 'Latent space', 'Number of filters', 'Flops', 'Layers', 'Noise reduction','True pos. array','Signal loss', 'Noise loss'])
+  results = pd.DataFrame(columns=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Sub conv layers', 'Signal ratio', 'False pos.', 'True pos.', 'Threshold value', 'Latent space', 'Number of filters', 'Flops', 'Layers', 'Noise reduction','True pos. array','Signal loss', 'Noise loss', 'Act. last layer','Any act. bottle'])
   results = results.set_index('Model name')
 if _if_old_model:
   old_model = load_model(old_model_path)
@@ -88,9 +91,11 @@ for batch in batches:
             for layer in layers:
               for i in range(number_of_single_models):
                 for conv in sub_conv_layers:
-                  model_name, total_epochs, batch, kernel, learning_rate, signal_ratio, fpr, tpr, threshold_value, latent_space, filters, flops, layer, noise_reduction_factors, true_pos_array, signal_loss, noise_loss  = cm.create_and_train_model(
+                  for activation_function_bottleneck in activation_function_bottlenecks:
+                    for activation_function_last_layer in activation_function_last_layers:
+                      model_name, total_epochs, batch, kernel, learning_rate, signal_ratio, fpr, tpr, threshold_value, latent_space, filters, flops, layer, noise_reduction_factors, true_pos_array, signal_loss, noise_loss  = cm.create_and_train_model(
                                                               single_model=single_model,
-                                                              old_model='',
+                                                              old_model=old_model,
                                                               layers=layer,
                                                               model_number=model_number,
                                                               latent_space=latent_space,
@@ -105,6 +110,8 @@ for batch in batches:
                                                               convs=conv,
                                                               epochs=epochs,
                                                               batch=batch,
+                                                              activation_function_bottleneck=activation_function_bottleneck,
+                                                              activation_function_last_layer=activation_function_last_layer,
                                                               learning_rate=learning_rate,
                                                               signal_ratio=signal_ratio, 
                                                               plot=plot,
@@ -112,7 +119,7 @@ for batch in batches:
                                                               number_of_filters=filters,
                                                               _old_model = _if_old_model)
                 
-                  results = results.append({'Model name': model_name,
+                      results = results.append({'Model name': model_name,
                                                'Epochs':total_epochs,   
                                                'Batch': batch, 
                                                'Kernel':kernel, 
@@ -128,10 +135,12 @@ for batch in batches:
                                                'Noise reduction':noise_reduction_factors,
                                                'True pos. array':true_pos_array,
                                                'Signal loss':signal_loss,
-                                               'Noise loss':noise_loss},
+                                               'Noise loss':noise_loss,
+                                               'Act. last layer':activation_function_last_layer,
+                                               'Any act. bottle':activation_function_bottleneck},
                                                ignore_index=True)
                 
-                  model_number += 1
+                      model_number += 1
 
 
 results.to_csv(path + '/results.csv')
