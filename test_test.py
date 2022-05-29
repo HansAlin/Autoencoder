@@ -16,6 +16,7 @@ import data_manage as dm
 
 import numpy as np
 from tensorflow.keras.models import load_model
+from tensorflow import keras
 
 
 ############   Coolecting best models  ###################
@@ -49,3 +50,12 @@ from tensorflow.keras.models import load_model
 # results.to_csv(csv_result_path)
 # pf.plot_table(path=result_path, table_name='collected_results.csv' )
 # pf.noise_reduction_from_results(pd.read_csv(result_path + '/collected_results.csv'), x_low_lim=0.8, save_path= result_path, name_prefix='', best_model='' )
+
+###########  Model summary ##########################
+save_path = '/home/halin/Autoencoder/Models/test_models'
+for i in range(1,7):
+
+  model_path = f'/home/halin/Autoencoder/Models/CNN_104/CNN_104_model_{i}.h5'
+  model = load_model(model_path)
+  print(model.summary())
+  next_model = input("Next model: \n")

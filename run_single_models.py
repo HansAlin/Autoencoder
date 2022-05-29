@@ -37,17 +37,19 @@ import numpy as np
 
 
 
+
+
 # Hyper parameters
 batches = [1024]
 learning_rates = [10**(-4)]
 signal_ratios = [0]
 kernels = [3]
-latent_spaces = [256]#
-number_of_filters = [128]
+latent_spaces = [64]#
+number_of_filters = [16,32,64,128,256]
 layers = [1]
 number_of_single_models = 1
 single_model = False
-epochs = 800
+epochs = 1000
 sub_conv_layers = [1]
 
 model_number = 1
@@ -55,13 +57,13 @@ test_run = False
 all_signals = True
 plot =True
 small_test_set = 2000
-activation_function_bottlenecks= [False,True]
-activation_function_last_layers=['tanh', 'linear']
+activation_function_bottlenecks= [True]#,True
+activation_function_last_layers=['tanh']#, 
 
 fpr = 0.05
 verbose = 1
 
-path = '/home/halin/Autoencoder/Models/CNN_103'
+path = '/home/halin/Autoencoder/Models/CNN_109'
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=all_signals, small_test_set=small_test_set)
 
 
