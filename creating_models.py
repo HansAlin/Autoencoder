@@ -53,9 +53,45 @@ def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layer
   autoencoder = decoder(enc, data_size, kernel, latent_space, number_of_filters, layers,convs,activation_function_last_layer)
   return autoencoder
 
+# def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck, activation_function_last_layer):
+#   ### CNN_110 ####
+  
+#   layer = Conv1D(filters=number_of_filters, kernel_size=kernel, strides=1, padding='same', activation='relu')(input)
+#   layer = MaxPooling1D()(layer)
+#   layer = Conv1D(filters=np.int(number_of_filters/2), kernel_size=kernel, strides=1, padding='same', activation='relu')(layer)
+#   layer = UpSampling1D()(layer)
+#   layer = Conv1D(filters=number_of_filters, kernel_size=kernel, strides=1, padding='same', activation='relu')(layer)
+#   layer = Dense(units=1, activation='tanh')(layer)
+#   return layer
+
+# def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck, activation_function_last_layer):
+#   ### CNN_111 ####
+#   # Encoder
+  
+
+#   layer = input
+#   for l in range(layers):
+#     for c in range(convs):
+#       layer = Conv1D(filters=number_of_filters, kernel_size=kernel, strides=1, padding='same', activation='relu')(layer)
+#     layer = MaxPooling1D()(layer)
+#     number_of_filters = np.int(number_of_filters/2)
+#   for c in range(convs):
+#       layer = Conv1D(filters=number_of_filters, kernel_size=kernel, strides=1, padding='same', activation='relu')(layer)
+     
+#   number_of_filters = number_of_filters*2
+#   for l in range(layers):
+#     layer = UpSampling1D()(layer)
+#     for c in range(convs):
+#       layer = Conv1D(filters=number_of_filters, kernel_size=kernel, strides=1, padding='same', activation='relu')(layer)
+#     number_of_filters = np.int(number_of_filters*2)
+
+#   layer = Dense(units=1, activation=activation_function_last_layer)(layer)
+#   return layer  
+
 def create_autoencoder_model(data,kernel, latent_space, number_of_filters, layers, convs,  activation_function_bottleneck, activation_function_last_layer, learning_rate=0.0005):
   data_size = len(data[0])
   adam = keras.optimizers.Adam(learning_rate=learning_rate)
+  shape_in_put = data[1].shape
   input_data = keras.Input(shape=data[1].shape)
   
   model = keras.Model(inputs=input_data, outputs=autoencoder(input_data, data_size, kernel, latent_space, number_of_filters, layers, convs,  activation_function_bottleneck, activation_function_last_layer))

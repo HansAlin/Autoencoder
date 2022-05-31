@@ -22,10 +22,11 @@ for device in physical_devices:
 #     print(e)
 
 from gc import callbacks
-from tensorflow import keras
+from tensorflow import keras, math
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Reshape, GlobalAveragePooling1D, Activation, GlobalAveragePooling2D, BatchNormalization
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv1D, MaxPooling1D, UpSampling1D
+from tensorflow.keras import backend as K
 from keras_flops import get_flops
 import data_manage as dm
 import creating_models as cm
@@ -34,6 +35,9 @@ import pandas as pd
 import numpy as np
 
 
+def activation_function(x):
+  
+  return K.switch(x >=0, math.tanh(x)*0.1, math.tanh(x)*0.1)
 
 
 
@@ -45,7 +49,7 @@ learning_rates = [10**(-4)]
 signal_ratios = [0]
 kernels = [3]
 latent_spaces = [64]#
-number_of_filters = [16,32,64,128,256]
+number_of_filters = [128]
 layers = [1]
 number_of_single_models = 1
 single_model = False
@@ -58,12 +62,12 @@ all_signals = True
 plot =True
 small_test_set = 2000
 activation_function_bottlenecks= [True]#,True
-activation_function_last_layers=['tanh']#, 
+activation_function_last_layers=[activation_function]#, 'tanh'
 
 fpr = 0.05
 verbose = 1
 
-path = '/home/halin/Autoencoder/Models/CNN_109'
+path = '/home/halin/Autoencoder/Models/CNN_112'
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=all_signals, small_test_set=small_test_set)
 
 

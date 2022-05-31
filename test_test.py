@@ -20,11 +20,13 @@ from tensorflow import keras
 
 
 ############   Coolecting best models  ###################
-#best_models = ['CNN_001_model_5', 'CNN_003_model_9', 'CNN_004_model_2', 'CNN_005_model_4', 'CNN_007_model_1', 'CNN_008_model_1', 'CNN_009_model_2']
-#path='/home/halin/Autoencoder/Models/'
-#save_path = path + 'Best_models' + '/best_results.csv'
-#df_of_best_models(best_models=best_models,save_path=save_path,path=path)
-#plot_table(path + 'Best_models', table_name='best_results.csv', headers=['Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'True pos.', 'Latent space', 'Flops', 'Layers'])
+# best_models = ['CNN_101_model_5', 'CNN_102_model_1', 'CNN_103_model_1', 'CNN_104_model_1', 'CNN_105_model_6', 'CNN_106_model_2', 'CNN_107_model_1', 'CNN_108_model_1', 'CNN_109_model_4',  ]
+# path='/home/halin/Autoencoder/Models/'
+# save_path = path + 'Best_models' + '/best_results.csv'
+# dm.make_dataframe_of_collections_of_models(best_models=best_models,save_path=save_path,path=path)
+# pf.plot_table(path + 'Best_models', table_name='best_results.csv', headers=['Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'True pos.', 'Latent space','Act. last layer', 'Flops', 'Layers'])
+# results = pd.read_csv(save_path)
+# pf.noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'Best_models')
 
 ############  Save best model in an folder  ###################
 # best_row_model = results.loc[results['Model name'] == 'CNN_003_model_9']
@@ -52,10 +54,17 @@ from tensorflow import keras
 # pf.noise_reduction_from_results(pd.read_csv(result_path + '/collected_results.csv'), x_low_lim=0.8, save_path= result_path, name_prefix='', best_model='' )
 
 ###########  Model summary ##########################
-save_path = '/home/halin/Autoencoder/Models/test_models'
-for i in range(1,7):
+# save_path = '/home/halin/Autoencoder/Models/test_models'
+# for i in range(1,7):
 
-  model_path = f'/home/halin/Autoencoder/Models/CNN_104/CNN_104_model_{i}.h5'
-  model = load_model(model_path)
-  print(model.summary())
-  next_model = input("Next model: \n")
+#   model_path = f'/home/halin/Autoencoder/Models/CNN_104/CNN_104_model_{i}.h5'
+#   model = load_model(model_path)
+#   print(model.summary())
+#   next_model = input("Next model: \n")
+
+#############  Plot table #########################
+
+#pf.plot_table('/home/halin/Autoencoder/Models/CNN_107', headers=['Model name', 'Epochs','Act. last layer', 'Flops'], )
+model = load_model('/home/halin/Autoencoder/Models/Wrong trained models/CNN_011/CNN_011_model_1.h5')
+print(model.summary())
+keras.utils.plot_model(model, to_file=('/home/halin/Autoencoder/Models/Wrong trained models/CNN_011/' + 'model_picture.jpg'))

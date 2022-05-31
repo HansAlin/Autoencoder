@@ -22,17 +22,26 @@ from tensorflow.keras.layers import (Activation, BatchNormalization, Conv1D,
                                      MaxPooling2D, Reshape, UpSampling1D)
 from tensorflow.keras.models import Sequential, load_model
 
+import data_manage as dm
+import plot_functions as pf
+import creating_models as cm
 
-from data_manage import load_data, adding_noisereduction_values_to_result_table
-from plot_functions import noise_reduction_curve_multi_models, noise_reduction_from_results, plot_table
 
 
-
-x_test, y_test, smask_test, signal, noise, std, mean = load_data(True)
-i = 9
-path = f'/home/halin/Autoencoder/Models/CNN_00{i}'
-results = pd.read_csv(path + '/results.csv')
-noise_reduction_from_results(results=results, x_low_lim=0.8, save_path=path)
+x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(True)
+# i = 9
+# path = f'/home/halin/Autoencoder/Models/CNN_00{i}'
+# results = pd.read_csv(path + '/results.csv')
+# noise_reduction_from_results(results=results, x_low_lim=0.8, save_path=path)
 #plot_table(path, table_name='results.csv', headers=['Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Latent space','Number of filters', 'Flops', 'Layers'])
 #adding_noisereduction_values_to_result_table(path, path + '/' + 'results.csv', x_test=x_test, smask_test=smask_test)
 
+model = cm.create_autoencoder_model(data=x_test,
+                                    latent_space=6,
+                                    layers=2,
+                                    convs=2,
+                                    kernel=3,
+                                    number_of_filters=256,
+                                    activation_function_last_layer='tanh',
+                                    activation_function_bottleneck=True    )
+print(model.summary())
