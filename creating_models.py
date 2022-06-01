@@ -10,48 +10,48 @@ import plot_functions as pf
 import data_manage as dm
 
 
-def encoder(input, kernel=3, latent_space=6, number_of_filters=128, layers=3, convs = 1, activation_function_bottleneck=True):
-  layer = input
-  for i in range(layers):
-    for j in range(convs):
-      layer = Conv1D(filters=number_of_filters, kernel_size=kernel, activation='relu', strides=1, padding='same')(layer)
-    layer = MaxPooling1D(pool_size=2)(layer)
+# def encoder(input, kernel=3, latent_space=6, number_of_filters=128, layers=3, convs = 1, activation_function_bottleneck=True):
+#   layer = input
+#   for i in range(layers):
+#     for j in range(convs):
+#       layer = Conv1D(filters=number_of_filters, kernel_size=kernel, activation='relu', strides=1, padding='same')(layer)
+#     layer = MaxPooling1D(pool_size=2)(layer)
 
-  layer = Flatten()(layer)
-  if activation_function_bottleneck:
-    encoder = Dense(latent_space, activation='relu')(layer)
-  else: 
-    encoder = Dense(latent_space)(layer)  
+#   layer = Flatten()(layer)
+#   if activation_function_bottleneck:
+#     encoder = Dense(latent_space, activation='relu')(layer)
+#   else: 
+#     encoder = Dense(latent_space)(layer)  
 
-  return encoder
+#   return encoder
 
-def decoder(input, data_size=100, kernel=3, latent_space=6, number_of_filters=128, layers=2, convs=1, activation_function_last_layer='tanh'):
-  first_layer_size = data_size
-  for j in range(layers):
-    first_layer_size = np.int(np.floor(first_layer_size/2))
+# def decoder(input, data_size=100, kernel=3, latent_space=6, number_of_filters=128, layers=2, convs=1, activation_function_last_layer='tanh'):
+#   first_layer_size = data_size
+#   for j in range(layers):
+#     first_layer_size = np.int(np.floor(first_layer_size/2))
    
-  layer = input
-  layer = Dense((first_layer_size*number_of_filters), activation='relu')(layer)
-  layer = Reshape((first_layer_size, number_of_filters))(layer)
+#   layer = input
+#   layer = Dense((first_layer_size*number_of_filters), activation='relu')(layer)
+#   layer = Reshape((first_layer_size, number_of_filters))(layer)
   
-  for i in range(layers):
-    for j in range(convs):
-      layer = Conv1D(filters=number_of_filters, kernel_size=kernel, activation='relu', strides=1, padding='same')(layer)
-    layer = UpSampling1D(2)(layer)
-    layer_shape = layer.shape
-    value = layer_shape[1]
-    if value == 48:
-      layer = keras.layers.ZeroPadding1D(1)(layer)
+#   for i in range(layers):
+#     for j in range(convs):
+#       layer = Conv1D(filters=number_of_filters, kernel_size=kernel, activation='relu', strides=1, padding='same')(layer)
+#     layer = UpSampling1D(2)(layer)
+#     layer_shape = layer.shape
+#     value = layer_shape[1]
+#     if value == 48:
+#       layer = keras.layers.ZeroPadding1D(1)(layer)
 
 
-  layer = Conv1D(filters=1, kernel_size=kernel, strides=1, padding='same', activation=activation_function_last_layer)(layer)
+#   layer = Conv1D(filters=1, kernel_size=kernel, strides=1, padding='same', activation=activation_function_last_layer)(layer)
 
-  return layer  
+#   return layer  
 
-def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck, activation_function_last_layer):
-  enc = encoder(input, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck)
-  autoencoder = decoder(enc, data_size, kernel, latent_space, number_of_filters, layers,convs,activation_function_last_layer)
-  return autoencoder
+# def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck, activation_function_last_layer):
+#   enc = encoder(input, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck)
+#   autoencoder = decoder(enc, data_size, kernel, latent_space, number_of_filters, layers,convs,activation_function_last_layer)
+#   return autoencoder
 
 # def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck, activation_function_last_layer):
 #   ### CNN_110 ####
@@ -83,10 +83,36 @@ def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layer
 #     layer = UpSampling1D()(layer)
 #     for c in range(convs):
 #       layer = Conv1D(filters=number_of_filters, kernel_size=kernel, strides=1, padding='same', activation='relu')(layer)
+#     layer_shape = layer.shape
+#     value = layer_shape[1]
+#     if value == 48:
+#       layer = keras.layers.ZeroPadding1D(1)(layer)
+#     number_of_filters = np.int(number_of_filters*2)
 #     number_of_filters = np.int(number_of_filters*2)
 
 #   layer = Dense(units=1, activation=activation_function_last_layer)(layer)
 #   return layer  
+def autoencoder(input, data_size, kernel, latent_space, number_of_filters, layers,convs, activation_function_bottleneck, activation_function_last_layer):
+  #Searching for new physics with deep autoencoders
+  layer = Conv1D(number_of_filters, kernel_size=kernel, activation='relu', padding='same')(input)
+  for i in range(layers - 1):
+    layer = MaxPooling1D()(layer)
+    layer = Conv1D(number_of_filters, kernel_size=kernel, activation='relu', padding='same')(layer)
+  layer = Flatten()(layer)
+  layer = Dense(32, activation='relu')(layer)
+  encoder = Dense(latent_space)(layer)
+
+  layer = Dense(32, activation='relu')(encoder)
+  layer = Dense(3200, activation='relu')(layer)
+  layer = Reshape((25,number_of_filters))(layer)
+  for i in range(layers - 1):
+    layer = Conv1D(number_of_filters,kernel_size=kernel, activation='relu', padding='same')(layer)
+    layer = UpSampling1D()(layer)
+  layer = Conv1D(1, kernel_size=kernel, padding='same')(layer)
+  layer = Reshape((1,100))(layer)
+  layer = Activation('linear')(layer)  
+
+  return layer
 
 def create_autoencoder_model(data,kernel, latent_space, number_of_filters, layers, convs,  activation_function_bottleneck, activation_function_last_layer, learning_rate=0.0005):
   data_size = len(data[0])
