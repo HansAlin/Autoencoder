@@ -79,7 +79,7 @@ def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/', small
 
   return x_test, y_test, smask_test, signal, noise, std, mean 
 
-def create_data(signal, noise, signal_ratio=0.001, test_run=False ):
+def create_data(signal, noise, signal_ratio=0, test_run=False ):
   """
     This function creates training(validation) and test data based on choosen 
     signal ratio in sample.
