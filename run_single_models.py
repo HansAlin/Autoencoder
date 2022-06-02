@@ -35,11 +35,26 @@ import pandas as pd
 import numpy as np
 
 
-def activation_function(x):
+def activation_function_1(x):
   
-  return K.switch(x >=0, math.tanh(x)*0.1, math.tanh(x)*0.1)
+  return K.tanh(x)*2**(-3)
+def activation_function_2(x):
+  
+  return K.tanh(x)*2**(-2)
+def activation_function_3(x):
+  
+  return K.tanh(x)*2**(-1)
+def activation_function_4(x):
+  
+  return K.tanh(x)*2**(1) 
+def activation_function_5(x):
+  
+  return K.tanh(x)*2**(2)
+def activation_function_6(x):
+  
+  return K.tanh(x)*2**(3)       
 
-
+leakyrelu = keras.layers.LeakyReLU()
 
 
 
@@ -49,12 +64,12 @@ learning_rates = [10**(-4)]
 signal_ratios = [0]
 kernels = [3]
 latent_spaces = [64]#
-number_of_filters = [128]
-layers = [1]
+number_of_filters = [64,128,256]
+layers = [1,2,3]
 number_of_single_models = 1
 single_model = False
 epochs = 1000
-sub_conv_layers = [1]
+sub_conv_layers = [1,2]
 
 model_number = 1
 test_run = False
@@ -62,12 +77,19 @@ all_signals = True
 plot =True
 small_test_set = 2000
 activation_function_bottlenecks= [True]#,True
-activation_function_last_layers=[activation_function]#, 'tanh'
+activation_function_last_layers=['tanh']
+                                # activation_function_1, 
+                                #  activation_function_2, 
+                                #  activation_function_3,
+                                #  activation_function_4,
+                                #  activation_function_5,
+                                #  activation_function_6, 
+                                #  leakyrelu]#, 
 
 fpr = 0.05
 verbose = 1
 
-path = '/home/halin/Autoencoder/Models/CNN_112'
+path = '/home/halin/Autoencoder/Models/CNN_111'
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=all_signals, small_test_set=small_test_set)
 
 

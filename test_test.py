@@ -17,6 +17,7 @@ import data_manage as dm
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow import keras
+from contextlib import redirect_stdout
 
 
 ############   Coolecting best models  ###################
@@ -65,6 +66,15 @@ from tensorflow import keras
 #############  Plot table #########################
 
 #pf.plot_table('/home/halin/Autoencoder/Models/CNN_107', headers=['Model name', 'Epochs','Act. last layer', 'Flops'], )
-model = load_model('/home/halin/Autoencoder/Models/Wrong trained models/CNN_011/CNN_011_model_1.h5')
-print(model.summary())
-keras.utils.plot_model(model, to_file=('/home/halin/Autoencoder/Models/Wrong trained models/CNN_011/' + 'model_picture.jpg'))
+
+############  Plot model summary   #############3
+number_of_models = 24
+folder = '/_models'
+for i in range(number_of_models):
+    path = '/home/halin/Autoencoder/Models/test_models' + folder + f'_model_{i+1}.h5'
+    model = load_model(path)
+    print(model.summary())
+    with open(path[:-2] + '_summary.txt', 'w') as f:
+        with redirect_stdout(f):
+            model.summary()
+
