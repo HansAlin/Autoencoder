@@ -19,6 +19,11 @@ from tensorflow.keras.models import load_model
 from tensorflow import keras
 from contextlib import redirect_stdout
 
+from NewPhysicsAutoencoder import NewPhysicsAutoencoder
+from SecondCNNModel import SecondCNNModel
+from DenseModel import DenseModel
+from ConvAutoencoder import ConvAutoencoder
+
 
 ############   Coolecting best models  ###################
 # best_models = ['CNN_101_model_5', 'CNN_102_model_1', 'CNN_103_model_1', 'CNN_104_model_1', 'CNN_105_model_6', 'CNN_106_model_2', 'CNN_107_model_1', 'CNN_108_model_1', 'CNN_109_model_4',  ]
@@ -67,14 +72,31 @@ from contextlib import redirect_stdout
 
 #pf.plot_table('/home/halin/Autoencoder/Models/CNN_107', headers=['Model name', 'Epochs','Act. last layer', 'Flops'], )
 
-############  Plot model summary   #############3
-number_of_models = 24
-folder = '/_models'
-for i in range(number_of_models):
-    path = '/home/halin/Autoencoder/Models/test_models' + folder + f'_model_{i+1}.h5'
-    model = load_model(path)
-    print(model.summary())
-    with open(path[:-2] + '_summary.txt', 'w') as f:
-        with redirect_stdout(f):
-            model.summary()
+###########  Plot model summary   #############3
+# number_of_models = 7
+# folder = 'CNN_102'
+# for i in range(number_of_models):
+#     path = '/home/halin/Autoencoder/Models/' + folder +'/'+ folder + f'_model_{i+1}.h5'
+#     model = load_model(path)
+#     print(model.summary())
+#     with open(path[:-2] + '_summary.txt', 'w') as f:
+#         with redirect_stdout(f):
+#             model.summary()
+
+############  testing models  ###################
+data_url = '/home/halin/Autoencoder/Data/'
+x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=False, data_path=data_url, small_test_set=1000)
+(encoder, decoder, autoencoder) = DenseModel.build(data=x_test,
+                                                     filters=[50,25], 
+                                                     activation_function='relu',
+                                                     latent_size=2,
+                                                     kernel=3,
+                                                     last_activation_function='linear',
+                                                      )#convs=1
+adam = keras.optimizers.Adam(learning_rate=0.0001) 
+autoencoder.compile(
+      loss = 'mse',
+      optimizer = adam,
+      metrics = ['mse','mae','mape'] )
+print(autoencoder.summary())                                                       
 

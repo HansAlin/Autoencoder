@@ -1,7 +1,7 @@
 from tensorflow import keras
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Reshape, GlobalAveragePooling1D, Activation, GlobalAveragePooling2D, BatchNormalization
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv1D, MaxPooling1D, UpSampling1D, LeakyReLU, Conv1DTranspose
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv1D, MaxPooling1D, UpSampling1D, LeakyReLU
 from keras_flops import get_flops
 from tensorflow.keras import backend as K
 import numpy as np
@@ -25,10 +25,9 @@ class SecondCNNModel:
 
     encoder = keras.Model(input_data, latent, name='encoder')
 
-    latentInputs = keras.Input(shape=(latent_size,))
+    latentInputs = keras.Input(shape=(latent_size,1,))
 
-    latentInputs = keras.Input(shape=(latent_size,))
-    layer = Dense(np.prod(volumeSize[1:]))(latentInputs)
+    layer = Dense(np.prod(volumeSize[1:]))(latent)
 
     layer = Reshape((volumeSize[1], volumeSize[2]))(layer)
     
@@ -41,9 +40,14 @@ class SecondCNNModel:
       if value == 48:
         layer = keras.layers.ZeroPadding1D(1)(layer)
 
-    outputs = Conv1D(filters=1, kernel_size=kernel, strides=1, padding='same', activation=last_activation_function)(layer)
-    decoder = keras.Model(latentInputs, outputs, name='decoder')
+    layer = Conv1D(filters=1, kernel_size=kernel, strides=1, padding='same')(layer)
+    if last_activation_function == 'linear': 
+       layer = Dense(units=100)(layer)
+    else:   
+      layer = Dense(units=100,activation=last_activation_function)(layer)
+    outputs = Reshape((100,1))(layer) 
+    #decoder = keras.Model(latent, outputs, name='decoder')
 
-    autoencoder = keras.Model(inputs=input_data, outputs=decoder(encoder(input_data)), name='autoencoder')
+    autoencoder = keras.Model(input_data, outputs, name='autoencoder')
 
-    return (encoder, decoder, autoencoder)
+    return (encoder, None, autoencoder)

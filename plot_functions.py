@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 from tensorflow.keras.models import load_model
 import data_manage as dm
+from scipy import integrate
 
 
 def find_signal(model, treshold, x, smask, under_treshold=True):
@@ -559,3 +560,57 @@ def plot_performance(path, x_test, smask_test, save_path, std, mean):
   fig.suptitle(f'Model {end_name}', fontsize=12)
   plt.tight_layout()
   plt.savefig(save_path + f'/Signal_and_noise_pred_{end_name}')
+
+def integration_test(x_test, smask_test):
+    test_size = 100000
+    signal = x_test[smask_test].reshape((121594,100))[:test_size]
+    noise = x_test[~smask_test].reshape((243188,100))[:test_size]
+    signal = np.abs(signal)
+    noise = np.abs(noise)
+    signal_integration_value = np.zeros(len(signal))
+    noise_integration_value = np.zeros(len(noise)) 
+    time_range = np.linspace(0,0.1,100)
+    for i in range(test_size):
+      signal_integration_value[i] = integrate.simps(y=signal[i], x=time_range)
+      noise_integration_value[i] = integrate.simps(y=noise[i], x=time_range)
+    max_value = np.max(signal_integration_value)
+    min_value = np.min(noise_integration_value)
+    low_lim = np.floor(np.log10(min_value))
+    high_lim = np.floor(np.log10(max_value))
+    bins = np.logspace(low_lim, high_lim, 1000)
+
+
+    _ = plt.hist(noise_integration_value, alpha=0.5, bins=bins, log=True, density=True)
+    _ = plt.hist(signal_integration_value, alpha=0.5, bins=bins, log=True, density=True)
+    plt.xscale('log')
+    plt.xlim([0.01,14])
+    plt.show()
+    threshold_value = 0
+    true_pos = np.zeros(len(bins))
+    false_pos = np.zeros(len(bins))
+    true_neg = np.zeros(len(bins))
+    false_neg = np.zeros(len(bins))
+    noise_reduction_factor = np.zeros(len(bins))
+    for i, limit in enumerate(bins):
+      true_pos[i] = np.count_nonzero(signal_integration_value > limit)/len(signal_integration_value)
+      false_pos[i] = np.count_nonzero(noise_integration_value > limit)/len(noise_integration_value)
+      true_neg[i] = 1 - false_pos[i]
+      false_pos[i] = 1 - true_pos[i]
+      if (true_neg[i] < 1):
+          noise_reduction_factor[i] = 1 / ( 1 - true_neg[i])
+      else:
+          noise_reduction_factor[i] = len(noise_integration_value)  
+    true_neg = 1 - false_pos
+    false_pos = 1 - true_pos
+    plt.plot(true_pos,noise_reduction_factor, label="Integration limit")  
+          
+    noise_events = np.count_nonzero(~smask_test)
+
+    plt.legend()
+    plt.ylabel(f'Noise reduction factor. Total {noise_events} noise events')
+    plt.xlabel('Efficiency/True Positive Rate')
+    plt.title('Signal efficiency vs. noise reduction factor')
+    plt.semilogy(True)
+    plt.xlim(0.75,1)
+    plt.grid()
+    plt.show()  
