@@ -357,7 +357,7 @@ def noise_reduction_curve_single_model(model_name, save_path, fpr, x_test, smask
 
     plt.plot(true_pos,noise_reduction_factor, label=model_name)  
       
-    noise_events = np.count_nonzero(~smask_test)
+    noise_events = len(noise_loss)
 
     plt.legend()
     plt.ylabel(f'Noise reduction factor. Total {noise_events} noise events')
