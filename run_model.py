@@ -20,7 +20,7 @@ from DenseModel import DenseModel
 filterss = [[50, 25]] #filter in layers
 conv_in_row = 2
 activation_functions = ['relu']
-latent_sizes = [2]
+latent_sizes = [2,4,8]
 kernels = [3]
 last_activation_functions = ['tanh','linear']
 learning_rates = [0.0001]
@@ -31,6 +31,7 @@ batches=[1024]
 verbose=1
 fpr=0.05
 folder = 118
+number_of_data_files_to_load = 4 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
 folder_path = '/home/halin/Autoencoder/Models/'
@@ -55,7 +56,10 @@ results = pd.DataFrame(columns=['Model name',
                                 'Activation func. rest'])
 model_type = 'DenseModel' #'ConvAutoencoder' #'NewPhysicsAutoencoder'#'SecondCNNModel' #  
 model_number = 1
-
+x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=(not test_run),
+																																		 data_path=data_url, 
+																																		 small_test_set=1000,
+																																		 number_of_files=number_of_data_files_to_load)
 
 for filters in filterss:
 	layers = len(filters)
@@ -65,9 +69,7 @@ for filters in filterss:
 				for last_activation_function in last_activation_functions:
 					for learning_rate in learning_rates:
 						for batch in batches:
-							x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=(not test_run),
-																																		 data_path=data_url, 
-																																		 small_test_set=1000)
+
 							model_name = f'CNN_{folder}_model_{model_number}'
 							save_path = folder_path + f'CNN_{folder}/' + model_name
 							if model_type == 'ConvAutoencoder':

@@ -21,7 +21,7 @@ def unnormalizing_data(normalized_data, std, mean):
   data = normalized_data*std + mean
   return data
 
-def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/', small_test_set=1000):
+def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/', small_test_set=1000, number_of_files=10):
   """
     This function loads data from ARIANNA group, downloaded localy
     Args:
@@ -36,7 +36,7 @@ def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/', small
   DATA_URL = data_path + 'trimmed100_data_noise_3.6SNR_1ch_0000.npy'#/home/halin/Autoencoder/Data/trimmed100_data_noise_3.6SNR_1ch_0000.npy
   noise = np.load(DATA_URL)
 
-  for i in range(1,10):
+  for i in range(1,number_of_files):
     noise = np.vstack((noise,np.load(data_path + f'trimmed100_data_noise_3.6SNR_1ch_000{i}.npy')))
 
   noise = np.vstack((noise,np.load(data_path + 'trimmed100_data_noise_3.6SNR_1ch_0010.npy')))
