@@ -6,33 +6,37 @@ import tensorflow as tf
 physical_devices = tf.config.list_physical_devices('GPU')
 for device in physical_devices:
     tf.config.experimental.set_memory_growth(device, True)
+import sys
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from creating_models import load_models
 
-import plot_functions as pf
-import data_manage as dm
 
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow import keras
 from contextlib import redirect_stdout
 
-from NewPhysicsAutoencoder import NewPhysicsAutoencoder
-from SecondCNNModel import SecondCNNModel
-from DenseModel import DenseModel
-from ConvAutoencoder import ConvAutoencoder
 
 
+print(sys.path)
+sys.path.insert(0,'/home/halin/Autoencoder/Code/Help_functions')
+from creating_models import load_models
+import plot_functions as pf
+import data_manage as dm
+
+# from NewPhysicsAutoencoder import NewPhysicsAutoencoder
+# from SecondCNNModel import SecondCNNModel
+# from DenseModel import DenseModel
+# from ConvAutoencoder import ConvAutoencoder
 ############   Coolecting best models  ###################
-# best_models = ['CNN_101_model_5', 'CNN_102_model_1', 'CNN_103_model_1', 'CNN_104_model_1', 'CNN_105_model_6', 'CNN_106_model_2', 'CNN_107_model_1', 'CNN_108_model_1', 'CNN_109_model_4',  ]
-# path='/home/halin/Autoencoder/Models/'
-# save_path = path + 'Best_models' + '/best_results.csv'
-# dm.make_dataframe_of_collections_of_models(best_models=best_models,save_path=save_path,path=path)
-# pf.plot_table(path + 'Best_models', table_name='best_results.csv', headers=['Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'True pos.', 'Latent space','Act. last layer', 'Flops', 'Layers'])
-# results = pd.read_csv(save_path)
-# pf.noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'Best_models')
+best_models = ['CNN_118_model_1', 'CNN_118_model_2', 'CNN_118_model_5', 'CNN_118_model_6', 'CNN_118_model_11', 'CNN_118_model_12'  ]
+path='/home/halin/Autoencoder/Models/'
+save_path = path + 'mixed_models' + '/mixed_results.csv'
+dm.make_dataframe_of_collections_of_models(best_models=best_models,save_path=save_path,path=path)
+pf.plot_table(path + 'mixed_models', table_name='mixed_results.csv', headers=['Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'True pos.', 'Latent space','Act. last layer', 'Flops', 'Layers'])
+results = pd.read_csv(save_path)
+pf.noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'Mixed_models')
 
 ############  Save best model in an folder  ###################
 # best_row_model = results.loc[results['Model name'] == 'CNN_003_model_9']
@@ -84,19 +88,19 @@ from ConvAutoencoder import ConvAutoencoder
 #             model.summary()
 
 ############  testing models  ###################
-data_url = '/home/halin/Autoencoder/Data/'
-x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=False, data_path=data_url, small_test_set=1000)
-(encoder, decoder, autoencoder) = DenseModel.build(data=x_test,
-                                                     filters=[50,25], 
-                                                     activation_function='relu',
-                                                     latent_size=2,
-                                                     kernel=3,
-                                                     last_activation_function='linear',
-                                                      )#convs=1
-adam = keras.optimizers.Adam(learning_rate=0.0001) 
-autoencoder.compile(
-      loss = 'mse',
-      optimizer = adam,
-      metrics = ['mse','mae','mape'] )
-print(autoencoder.summary())                                                       
+# data_url = '/home/halin/Autoencoder/Data/'
+# x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=False, data_path=data_url, small_test_set=1000)
+# (encoder, decoder, autoencoder) = DenseModel.build(data=x_test,
+#                                                      filters=[50,25], 
+#                                                      activation_function='relu',
+#                                                      latent_size=2,
+#                                                      kernel=3,
+#                                                      last_activation_function='linear',
+#                                                       )#convs=1
+# adam = keras.optimizers.Adam(learning_rate=0.0001) 
+# autoencoder.compile(
+#       loss = 'mse',
+#       optimizer = adam,
+#       metrics = ['mse','mae','mape'] )
+# print(autoencoder.summary())                                                       
 

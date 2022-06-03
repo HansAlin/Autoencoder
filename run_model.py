@@ -8,11 +8,11 @@ for device in physical_devices:
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from creating_models import load_models
+
 import creating_models as cm
 import plot_functions as pf
 import data_manage as dm
-from ConvAutoencoder import ConvAutoencoder
+
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow import keras
@@ -21,22 +21,23 @@ from contextlib import redirect_stdout
 from NewPhysicsAutoencoder import NewPhysicsAutoencoder
 from SecondCNNModel import SecondCNNModel
 from DenseModel import DenseModel
+from ConvAutoencoder import ConvAutoencoder
 
-
-filterss = [[50, 25], [150,300]] #filter in layers
+filterss = [[32,64,128], [128]] # filter in layers [50,25] 50 means filters (or units if dense layer)
+																 # in first layer and 25 filters in second layer
 conv_in_row = 2
 activation_functions = ['relu']
-latent_sizes = [2,4,500]
+latent_sizes = [2,64,256]
 kernels = [3]
 last_activation_functions = ['tanh','linear']
 learning_rates = [0.0001]
-epochs = 1000
+epochs = 1
 test_run = False
 plot=True
 batches=[1024]
 verbose=1
 fpr=0.05
-folder = 118
+folder = 119
 number_of_data_files_to_load = 10 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
@@ -60,7 +61,7 @@ results = pd.DataFrame(columns=['Model name',
                                 'Noise loss',
                                 'Act. last layer',
                                 'Activation func. rest'])
-model_type = 'DenseModel' #'ConvAutoencoder' #'NewPhysicsAutoencoder'#'SecondCNNModel' #  
+model_type = 'SecondCNNModel' #'DenseModel' #'ConvAutoencoder' #'NewPhysicsAutoencoder'#  
 model_number = 1
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=(not test_run),
 																																		 data_path=data_url, 

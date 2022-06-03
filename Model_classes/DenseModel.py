@@ -14,8 +14,8 @@ class DenseModel:
     """
       From: Searching for new physics with deep autoencoders
       Arg:
-        data: train or test data
-        filters: equal to units
+        data: train or test data ( ,100,1)
+        filters: equal to units in this case
     """
     
     input_data = keras.Input(shape=data[0].shape)
