@@ -26,8 +26,8 @@ class DenseModel:
       layer = BatchNormalization()(layer)
       layer = Dropout(rate=0.05)(layer)
 
-    latent = Dense(units=latent_size)(layer)
-    encoder = keras.Model(input_data, latent, name='encoder')
+    layer = Dense(units=latent_size)(layer)
+    encoder = keras.Model(input_data, layer, name='encoder')
     latentInputs = keras.Input(shape=(latent_size))
     for f in filters[::-1]:
       layer = Dense(units=f, activation=activation_function)(layer)

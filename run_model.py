@@ -1,4 +1,10 @@
-
+import os
+from gpuutils import GpuUtils
+GpuUtils.allocate(gpu_count=1, framework='keras')
+import tensorflow as tf
+physical_devices = tf.config.list_physical_devices('GPU')
+for device in physical_devices:
+    tf.config.experimental.set_memory_growth(device, True)
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -17,21 +23,21 @@ from SecondCNNModel import SecondCNNModel
 from DenseModel import DenseModel
 
 
-filterss = [[50, 25]] #filter in layers
+filterss = [[50, 25], [150,300]] #filter in layers
 conv_in_row = 2
 activation_functions = ['relu']
-latent_sizes = [2,4,8]
+latent_sizes = [2,4,500]
 kernels = [3]
 last_activation_functions = ['tanh','linear']
 learning_rates = [0.0001]
-epochs = 2
+epochs = 1000
 test_run = False
 plot=True
 batches=[1024]
 verbose=1
 fpr=0.05
 folder = 118
-number_of_data_files_to_load = 4 # Max 10
+number_of_data_files_to_load = 10 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
 folder_path = '/home/halin/Autoencoder/Models/'
@@ -168,4 +174,6 @@ pf.plot_table(folder_path + f'CNN_{folder}', headers=['Model name',
                                 'Layers',
                                 'Act. last layer',
                                 'Activation func. rest'])  
+pf.noise_reduction_from_results(pd.read_csv(folder_path + f'CNN_{folder}' + '/results.csv'), x_low_lim=0.8, save_path= folder_path + f'CNN_{folder}', name_prefix='', best_model='' )
+
 print()                   
