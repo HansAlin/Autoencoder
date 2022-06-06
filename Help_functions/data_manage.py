@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import creating_models as cm
-import plot_functions as pf
+import Help_functions.creating_models as cm
+import Help_functions.plot_functions as pf
 import glob
 
 

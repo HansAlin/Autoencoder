@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
 from tensorflow.keras.models import load_model
-import data_manage as dm
+import Help_functions.data_manage as dm
 from scipy import integrate
 
 

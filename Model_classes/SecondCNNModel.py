@@ -6,8 +6,8 @@ from keras_flops import get_flops
 from tensorflow.keras import backend as K
 import numpy as np
 import glob
-import plot_functions as pf
-import data_manage as dm
+import Help_functions.plot_functions as pf
+import Help_functions.data_manage as dm
 
 class SecondCNNModel:
   def build(data, filters=[32,64,128], activation_function='relu', latent_size=6, kernel=3, last_activation_function='linear', convs=2):
@@ -42,9 +42,9 @@ class SecondCNNModel:
 
     layer = Conv1D(filters=1, kernel_size=kernel, strides=1, padding='same')(layer)
     if last_activation_function == 'linear': 
-       layer = Dense(units=100)(layer)
+       layer = Dense(units=1)(layer)
     else:   
-      layer = Dense(units=100,activation=last_activation_function)(layer)
+      layer = Dense(units=1,activation=last_activation_function)(layer)
     outputs = Reshape((100,1))(layer) 
     #decoder = keras.Model(latent, outputs, name='decoder')
 

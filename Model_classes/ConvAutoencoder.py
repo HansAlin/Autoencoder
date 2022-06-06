@@ -7,8 +7,8 @@ from keras_flops import get_flops
 from tensorflow.keras import backend as K
 import numpy as np
 import glob
-import plot_functions as pf
-import data_manage as dm
+import Help_functions.plot_functions as pf
+import Help_functions.data_manage as dm
 
 class ConvAutoencoder:
   def build(data, filters=[32,64,128], activation_function='relu', latent_size=6, kernel=3, last_activation_function='linear'):

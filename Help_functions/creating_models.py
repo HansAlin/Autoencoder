@@ -6,8 +6,8 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv1D, MaxPooling1D, 
 from keras_flops import get_flops
 import numpy as np
 import glob
-import plot_functions as pf
-import data_manage as dm
+import Help_functions.plot_functions as pf
+import Help_functions.data_manage as dm
 
 
 # def encoder(input, kernel=3, latent_space=6, number_of_filters=128, layers=3, convs = 1, activation_function_bottleneck=True):

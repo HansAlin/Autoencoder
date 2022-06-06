@@ -9,27 +9,27 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-import creating_models as cm
-import plot_functions as pf
-import data_manage as dm
+import Help_functions.creating_models as cm
+import Help_functions.plot_functions as pf
+import Help_functions.data_manage as dm
 
-import numpy as np
+import numpy as np 
 from tensorflow.keras.models import load_model
 from tensorflow import keras
 from keras_flops import get_flops
 from contextlib import redirect_stdout
-from NewPhysicsAutoencoder import NewPhysicsAutoencoder
-from SecondCNNModel import SecondCNNModel
-from DenseModel import DenseModel
-from ConvAutoencoder import ConvAutoencoder
+from Model_classes.NewPhysicsAutoencoder import NewPhysicsAutoencoder
+from Model_classes.SecondCNNModel import SecondCNNModel
+from Model_classes.DenseModel import DenseModel
+from Model_classes.ConvAutoencoder import ConvAutoencoder
 
-filterss = [[32,64,128], [128]] # filter in layers [50,25] 50 means filters (or units if dense layer)
+filterss = [[32,64,128], [128,128,128],[64,128,256]] # filter in layers [50,25] 50 means filters (or units if dense layer)
 																 # in first layer and 25 filters in second layer
 conv_in_row = 2
 activation_functions = ['relu']
-latent_sizes = [2,64,256]
+latent_sizes = [2,32,64,256]
 kernels = [3]
-last_activation_functions = ['tanh','linear']
+last_activation_functions = ['tanh']#'linear'
 learning_rates = [0.0001]
 epochs = 1
 test_run = False
@@ -37,7 +37,7 @@ plot=True
 batches=[1024]
 verbose=1
 fpr=0.05
-folder = 119
+folder = 120
 number_of_data_files_to_load = 10 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
@@ -61,7 +61,7 @@ results = pd.DataFrame(columns=['Model name',
                                 'Noise loss',
                                 'Act. last layer',
                                 'Activation func. rest'])
-model_type = 'SecondCNNModel' #'DenseModel' #'ConvAutoencoder' #'NewPhysicsAutoencoder'#  
+model_type ='SecondCNNModel' #'ConvAutoencoder' #'NewPhysicsAutoencoder'# 'DenseModel' #  
 model_number = 1
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=(not test_run),
 																																		 data_path=data_url, 
