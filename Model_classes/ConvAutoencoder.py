@@ -26,18 +26,20 @@ class ConvAutoencoder:
 
     volumeSize = K.int_shape(layer)  
     layer = Flatten()(layer)
-    latent = Dense(latent_size)(layer)  
+    layer = Dense(latent_size)(layer)  
 
-    encoder = keras.Model(input_data, latent, name='encoder')
+    encoder = keras.Model(input_data, layer, name='encoder')
+    
 
-    latentInputs = keras.Input(shape=(latent_size,))
-    layer = Dense(np.prod(volumeSize[1:]))(latentInputs)
+    layer = Dense(np.prod(volumeSize[1:]))(layer)
     layer = Reshape((volumeSize[1], volumeSize[2]))(layer)
     padding = 'same'
     for f in filters[::-1]:
       _, size, _ = K.int_shape(layer)
       if size == 52:
         layer = keras.layers.Cropping1D(cropping=(1,1))(layer)
+      elif size == 56:
+        layer = keras.layers.Cropping1D(cropping=(3,3))(layer)  
       if activation_function == 'LeakyRelu':
         layer = UpSampling1D()(layer)
         layer = Conv1D(filters=f, kernel_size=kernel, padding=padding)(layer)
@@ -51,14 +53,14 @@ class ConvAutoencoder:
     layer = Conv1D(filters=1, kernel_size=kernel, padding='same', activation=activation_function)(layer) 
     
     if last_activation_function == 'linear': 
-       layer = Dense(units=100)(layer)
+       layer = Dense(units=1)(layer)
     else:   
-      layer = Dense(units=100,activation=last_activation_function)(layer)
+      layer = Dense(units=1,activation=last_activation_function)(layer)
     outputs = Reshape((100,1))(layer)  
     
-      
-    decoder = keras.Model(latentInputs, outputs, name='decoder')
-
-    autoencoder = keras.Model(input_data, decoder(encoder(input_data)), name='autoencoder')
+    latentInputs = keras.Input(shape=(latent_size,))
+    decoder = None #keras.Model(latentInputs, outputs, name='decoder')
+    
+    autoencoder = keras.Model(input_data,outputs , name='autoencoder')#decoder(encoder(input_data))
 
     return (encoder, decoder, autoencoder)

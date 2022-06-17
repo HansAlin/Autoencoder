@@ -23,9 +23,9 @@ from tensorflow.keras.layers import (Activation, BatchNormalization, Conv1D,
                                      MaxPooling2D, Reshape, UpSampling1D)
 from tensorflow.keras.models import Sequential, load_model
 
-import data_manage as dm
-import plot_functions as pf
-import creating_models as cm
+import Help_functions.creating_models as cm
+import Help_functions.plot_functions as pf
+import Help_functions.data_manage as dm
 
 
 

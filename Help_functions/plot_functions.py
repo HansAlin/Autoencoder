@@ -415,7 +415,7 @@ def find_best_model(path,fpr, x_test, smask_test,save_output=True ):
   best_model['True pos.'] = tpr
   print(best_model)
 
-def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs', 'Batch','Number of filters', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Latent space', 'Sub conv layers', 'Flops', 'Layers','Act. last layer','Any act. bottle']):
+def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs', 'Batch','Number of filters', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Latent space', 'Sub conv layers', 'Flops', 'Layers','Act. last layer','Any act. bottle'], sufix=''):
   """
     This function plots the result from the atempt. The results are pandas dataframe.
     Args:
@@ -447,7 +447,7 @@ def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs',
               fontweight ="bold")                     
   fig.tight_layout()
 
-  savefig_path = path + '/' + atempt + '_table.png'
+  savefig_path = path + '/' + atempt + sufix + '_table.png'
   plt.savefig(savefig_path,
               bbox_inches='tight',
               edgecolor=fig.get_edgecolor(),
@@ -468,7 +468,7 @@ def noise_reduction_from_results(results, best_model, x_low_lim=0.8, save_path='
   """
   
   fig, ax = plt.subplots()  
-  if name_prefix != '':
+  if isinstance(best_model, pd.DataFrame):
     value1 = best_model['True pos. array'][0]
     value2 = best_model['Noise reduction'][0]
     tpr = convert_result_dataframe_string_to_list(value1) 
@@ -522,44 +522,56 @@ def convert_result_dataframe_string_to_list(result_string):
 def plot_performance(path, x_test, smask_test, save_path, std, mean):
   
   model = load_model(path)
-  print(model.summary())
+  #print(model.summary())
 
   
   x_noise = x_test[~smask_test]
   x_noise = x_noise[:10]      #small subset
   x_pred_noise = model.predict(x_noise)[0]
-  x_noise = dm.unnormalizing_data(x_noise[0], std=std, mean=mean)
+  x_noise = x_noise[0]
+  x_noise = dm.unnormalizing_data(x_noise, std=std, mean=mean)
   x_pred_noise = dm.unnormalizing_data(x_pred_noise, std=std, mean=mean)
   res_noise = x_noise - x_pred_noise
 
   x_signal = x_test[smask_test]
   x_signal = x_signal[:10]    #subset
   x_pred_signal = model.predict(x_signal)[0]
-  x_signal = dm.unnormalizing_data(x_signal[0], std=std, mean=mean)
+  x_signal = x_signal[0]
+  x_signal = dm.unnormalizing_data(x_signal, std=std, mean=mean)
   x_pred_signal = dm.unnormalizing_data(x_pred_signal, std=std, mean=mean)
   res_signal = x_signal - x_pred_signal
   end_name = path[-18:-3]
-
+  if end_name[0] == 'N':
+    end_name = 'C' + end_name
   fig, axis = plt.subplots(2,2)
 
   axis[0,0].plot(x_noise, label="Original noise")
   axis[0,0].plot(x_pred_noise, label="Predicted noise")
   axis[0,0].legend()
+  axis[0,0].grid()
   axis[0,0].set_title(f'Noise')
 
   axis[0,1].plot(x_signal, label="Original signal")
   axis[0,1].plot(x_pred_signal, label="Predicted signal")
   axis[0,1].set_title(f'Signal')
+  axis[0,1].grid()
   axis[0,1].legend()
 
-  axis[1,0].plot(res_noise)
+  axis[1,0].plot(res_noise, label='Residual')
   axis[1,0].set_title(f'Noise residuals')
+  axis[1,0].grid()
+  axis[1,0].legend()
 
-  axis[1,1].plot(res_signal)
+  axis[1,1].plot(res_signal, label='Residual')
   axis[1,1].set_title(f'Signal residuals')
+  axis[1,1].grid()
+  axis[1,1].legend()
   fig.suptitle(f'Model {end_name}', fontsize=12)
+  
   plt.tight_layout()
-  plt.savefig(save_path + f'/Signal_and_noise_pred_{end_name}')
+  plt.savefig(save_path + f'{end_name}_Signal_and_noise_pred')
+  plt.show()
+  plt.cla()
 
 def integration_test(x_test, smask_test):
     test_size = 100000

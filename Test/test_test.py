@@ -17,26 +17,22 @@ from tensorflow.keras.models import load_model
 from tensorflow import keras
 from contextlib import redirect_stdout
 
-
-
-print(sys.path)
-sys.path.insert(0,'/home/halin/Autoencoder/Code/Help_functions')
-from creating_models import load_models
-import plot_functions as pf
-import data_manage as dm
+import Help_functions.creating_models as cm
+import Help_functions.plot_functions as pf
+import Help_functions.data_manage as dm
 
 # from NewPhysicsAutoencoder import NewPhysicsAutoencoder
 # from SecondCNNModel import SecondCNNModel
 # from DenseModel import DenseModel
 # from ConvAutoencoder import ConvAutoencoder
 ############   Coolecting best models  ###################
-best_models = ['CNN_118_model_1', 'CNN_118_model_2', 'CNN_118_model_5', 'CNN_118_model_6', 'CNN_118_model_11', 'CNN_118_model_12'  ]
-path='/home/halin/Autoencoder/Models/'
-save_path = path + 'mixed_models' + '/mixed_results.csv'
-dm.make_dataframe_of_collections_of_models(best_models=best_models,save_path=save_path,path=path)
-pf.plot_table(path + 'mixed_models', table_name='mixed_results.csv', headers=['Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'True pos.', 'Latent space','Act. last layer', 'Flops', 'Layers'])
-results = pd.read_csv(save_path)
-pf.noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'Mixed_models')
+# best_models = ['CNN_118_model_1', 'CNN_118_model_2', 'CNN_118_model_5', 'CNN_118_model_6', 'CNN_118_model_11', 'CNN_118_model_12'  ]
+# path='/home/halin/Autoencoder/Models/'
+# save_path = path + 'mixed_models' + '/mixed_results.csv'
+# dm.make_dataframe_of_collections_of_models(best_models=best_models,save_path=save_path,path=path)
+# pf.plot_table(path + 'mixed_models', table_name='mixed_results.csv', headers=['Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'True pos.', 'Latent space','Act. last layer', 'Flops', 'Layers'])
+# results = pd.read_csv(save_path)
+# pf.noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'Mixed_models')
 
 ############  Save best model in an folder  ###################
 # best_row_model = results.loc[results['Model name'] == 'CNN_003_model_9']
@@ -64,7 +60,10 @@ pf.noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, sa
 # pf.noise_reduction_from_results(pd.read_csv(result_path + '/collected_results.csv'), x_low_lim=0.8, save_path= result_path, name_prefix='', best_model='' )
 
 ###########  Model summary ##########################
-# save_path = '/home/halin/Autoencoder/Models/test_models'
+save_path = '/home/halin/Autoencoder/Models/test_models'
+model_path = '/home/halin/Autoencoder/Models/Wrong trained models/CNN_003/CNN_003_model_9.h5'
+model = load_model(model_path)
+print(model.summary())
 # for i in range(1,7):
 
 #   model_path = f'/home/halin/Autoencoder/Models/CNN_104/CNN_104_model_{i}.h5'
