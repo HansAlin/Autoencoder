@@ -1,4 +1,5 @@
 import os
+from re import M
 from gpuutils import GpuUtils
 GpuUtils.allocate(gpu_count=1, framework='keras')
 import tensorflow as tf
@@ -22,25 +23,52 @@ from Model_classes.NewPhysicsAutoencoder import NewPhysicsAutoencoder
 from Model_classes.SecondCNNModel import SecondCNNModel
 from Model_classes.DenseModel import DenseModel
 from Model_classes.ConvAutoencoder import ConvAutoencoder
+from tensorflow.keras import backend as K
 
-filterss = [[32,64,128,256]] #,[128,256,512] filter in layers [50,25] 50 means filters (or units if dense layer)
+############# Costum activation function   ################3
+def activation_function_1(x):
+  
+  return K.tanh(x)*2**(-3)
+def activation_function_2(x):
+  
+  return K.tanh(x)*2**(-2)
+def activation_function_3(x):
+  
+  return K.tanh(x)*2**(-1)
+def activation_function_4(x):
+  
+  return K.tanh(x)*2**(1) 
+def activation_function_5(x):
+  
+  return K.tanh(x)*2**(2)
+def activation_function_6(x):
+  
+  return K.tanh(x)*2**(3) 
+
+
+filterss = [[32,64,128]] #,[128,256,512] filter in layers [50,25] 50 means filters (or units if dense layer)
 																 # in first layer and 25 filters in second layer
-conv_in_row = 1
-activation_functions = ['tanh'] #,'relu'
-latent_sizes = [7]#
+conv_in_rows = [1]
+activation_functions = ['relu'] #
+latent_sizes = [64]#
 kernels = [3]
-last_activation_functions = ['linear']#
+last_activation_functions=['linear']#, 
 learning_rates = [0.0001]
 epochs = 1
-epoch_distribution =[1,2,3,4,5,6,7,8,9]#,10,100] # [10,20,60,180,440] #  [10] # Epochs per run
+epoch_distribution =[1,1,2,4,8,16,32,64,128,256,512]#,10,100] # [10,20,60,180,440] #  [10] # Epochs per run
 
 number_of_same_model = len(epoch_distribution)
 test_run = False
 plot=True
-batches=[1024]
+batches=[1024]#[1] #
+signal_ratios = [0]
+max_ratio = np.max(signal_ratios)
+all_signals = False
+if 0.0 in signal_ratios and len(signal_ratios) == 1:
+	all_signals = True
 verbose=1
 fpr=0.05
-folder = 133
+folder = 146
 number_of_data_files_to_load = 10 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
@@ -58,6 +86,7 @@ results = pd.DataFrame(columns=['Model name',
                                 'Threshold value', 
                                 'Latent space', 
                                 'Number of filters', 
+																'Conv. in row',
                                 'Flops',
                                 'Layers', 
                                 'Noise reduction',
@@ -65,139 +94,150 @@ results = pd.DataFrame(columns=['Model name',
                                 'Signal loss',
                                 'Noise loss',
                                 'Act. last layer',
-                                'Activation func. rest'])
+                                'Activation func. rest',
+																'Signal ratio'])
 model_number = 1
 recycling_model = ''
-x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=(not test_run),
+x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_for_testing=all_signals,
+																																		 all_samples=(not test_run),						
 																																		 data_path=data_url, 
 																																		 small_test_set=1000,
 																																		 number_of_files=number_of_data_files_to_load)
 
 for filters in filterss:
 	layers = len(filters)
-	for activation_function in activation_functions:
-		for latent_size in latent_sizes:
-			for kernel in kernels:
-				for last_activation_function in last_activation_functions:
-					for learning_rate in learning_rates:
-						for batch in batches:
-							total_epochs = 0
-							for i in range(number_of_same_model):
-								model_name = f'CNN_{folder}_model_{model_number}'
-								save_path = folder_path + f'CNN_{folder}/' + model_name
-								if number_of_same_model == 1 or i == 0:
-									if model_type == 'ConvAutoencoder':
-												(encoder, decoder, autoencoder) = ConvAutoencoder.build(data=x_test,
-																																			filters=filters, 
-																																			activation_function=activation_function,
-																																			latent_size=latent_size,
-																																			kernel=kernel,
-																																			last_activation_function=last_activation_function )
-									elif model_type == 'NewPhysicsAutoencoder':
-												(encoder, decoder, autoencoder) = NewPhysicsAutoencoder.build(data=x_test,
-																																			filters=filters, 
-																																			activation_function=activation_function,
-																																			latent_size=latent_size,
-																																			kernel=kernel,
-																																			last_activation_function=last_activation_function )
-									elif model_type == 'SecondCNNModel':
-												(encoder, decoder, autoencoder) = SecondCNNModel.build(data=x_test,
-																																			filters=filters, 
-																																			activation_function=activation_function,
-																																			latent_size=latent_size,
-																																			kernel=kernel,
-																																			last_activation_function=last_activation_function,
-																																			convs=conv_in_row )
-									elif model_type == 'DenseModel':
-												(encoder, decoder, autoencoder) = DenseModel.build(data=x_test,
-																																			filters=filters, 
-																																			activation_function=activation_function,
-																																			latent_size=latent_size,
-																																			kernel=kernel,
-																																			last_activation_function=last_activation_function )
-									epochs = epoch_distribution[i]
-								else:
-									autoencoder = recycling_model
-									epochs = epoch_distribution[i]
-									
-								adam = keras.optimizers.Adam(learning_rate=learning_rate) 
-								autoencoder.compile(
-											loss = 'mse',
-											optimizer = adam,
-											metrics = ['mse','mae','mape'] )
-								print(autoencoder.summary())  
-								with open(save_path + '_summary.txt', 'w') as f:
-												with redirect_stdout(f):
-														autoencoder.summary() 
-								x_train, smask_train, y_train = dm.create_data(signal=signal, noise=noise, test_run=test_run)      
-								trained_autoencoder = cm.train_autoencoder(model=autoencoder,
-																														x_train=x_train,
-																															epochs=epochs,
-																															batch=batch,
-																																verbose=verbose)
-								flops = get_flops(autoencoder)
-								autoencoder.save((save_path + '.h5'))
-								if plot:
-									pf.loss_plot(save_path, trained_autoencoder)
-									pf.plot_performance(path=(save_path + '.h5'),
-																			x_test=x_test,
-																			smask_test=smask_test,
-																			save_path=save_path,
-																			std=std,
-																			mean=mean)
-								signal_loss, noise_loss = pf.prep_loss_values(autoencoder,x_test,smask_test)
-								bins = pf.hist(save_path, signal_loss, noise_loss, plot=plot)
-								threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors, true_pos_array = pf.noise_reduction_curve_single_model(
-																																							model_name=model_name,
-																																							save_path=save_path, 
-																																							x_test=x_test, 
-																																							smask_test=smask_test, 
-																																							fpr=fpr, 
-																																							plot=plot, 
-																																							signal_loss=signal_loss, 
-																																							noise_loss=noise_loss)
-								if number_of_same_model > 1:
-									total_epochs += epochs
-									epochs = total_epochs
-								results = results.append({'Model name': model_name,
-														'Model type':model_type,
-														'Epochs':epochs,   
-														'Batch': batch, 
-														'Kernel':kernel, 
-														'Learning rate':learning_rate, 
-														'False pos.':fpr, 
-														'True pos.':tpr, 
-														'Threshold value':threshold_value, 
-														'Latent space':latent_size, 
-														'Number of filters':filters, 
-														'Flops':flops,
-														'Layers':layers, 
-														'Noise reduction':noise_reduction_factors,
-														'True pos. array':true_pos_array,
-														'Signal loss':signal_loss,
-														'Noise loss':noise_loss,
-														'Act. last layer':last_activation_function,
-														'Activation func. rest':activation_function},
-														ignore_index=True)
-								recycling_model = autoencoder
-								model_number += 1
+	for conv_in_row in conv_in_rows:
+		for activation_function in activation_functions:
+			for latent_size in latent_sizes:
+				for kernel in kernels:
+					for last_activation_function in last_activation_functions:
+						for learning_rate in learning_rates:
+							for batch in batches:
+								total_epochs = 0
+								for i in range(number_of_same_model):
+									for signal_ratio in signal_ratios:
+										model_name = f'CNN_{folder}_model_{model_number}'
+										save_path = folder_path + f'CNN_{folder}/' + model_name
+										if number_of_same_model == 1 or i == 0:
+											if model_type == 'ConvAutoencoder':
+														(encoder, decoder, autoencoder) = ConvAutoencoder.build(data=x_test,
+																																					filters=filters, 
+																																					activation_function=activation_function,
+																																					latent_size=latent_size,
+																																					kernel=kernel,
+																																					last_activation_function=last_activation_function )
+											elif model_type == 'NewPhysicsAutoencoder':
+														(encoder, decoder, autoencoder) = NewPhysicsAutoencoder.build(data=x_test,
+																																					filters=filters, 
+																																					activation_function=activation_function,
+																																					latent_size=latent_size,
+																																					kernel=kernel,
+																																					last_activation_function=last_activation_function )
+											elif model_type == 'SecondCNNModel':
+														(encoder, decoder, autoencoder) = SecondCNNModel.build(data=x_test,
+																																					filters=filters, 
+																																					activation_function=activation_function,
+																																					latent_size=latent_size,
+																																					kernel=kernel,
+																																					last_activation_function=last_activation_function,
+																																					convs=conv_in_row )
+											elif model_type == 'DenseModel':
+														(encoder, decoder, autoencoder) = DenseModel.build(data=x_test,
+																																					filters=filters, 
+																																					activation_function=activation_function,
+																																					latent_size=latent_size,
+																																					kernel=kernel,
+																																					last_activation_function=last_activation_function )
+											epochs = epoch_distribution[i]
+										else:
+											autoencoder = recycling_model
+											epochs = epoch_distribution[i]
+											
+										adam = keras.optimizers.Adam(learning_rate=learning_rate) 
+										autoencoder.compile(
+													loss = 'mse',
+													optimizer = adam,
+													metrics = ['mse','mae','mape'] )
+										print(autoencoder.summary())  
+										with open(save_path + '_summary.txt', 'w') as f:
+														with redirect_stdout(f):
+																autoencoder.summary() 
+										x_train, smask_train, y_train = dm.create_data(signal=signal, 
+																																	noise=noise, 
+																																	test_run=test_run, 
+																																	signal_ratio=signal_ratio,
+																																	maximum_ratio=max_ratio)      
+										trained_autoencoder = cm.train_autoencoder(model=autoencoder,
+																																x_train=x_train,
+																																	epochs=epochs,
+																																	batch=batch,
+																																		verbose=verbose)
+										flops = get_flops(autoencoder)
+										autoencoder.save((save_path + '.h5'))
+										if plot:
+											pf.loss_plot(save_path, trained_autoencoder)
+											pf.plot_performance(autoencoder,
+																					x_test=x_test,
+																					smask_test=smask_test,
+																					save_path=save_path,
+																					std=std,
+																					mean=mean)
+										signal_loss, noise_loss = pf.prep_loss_values(autoencoder,x_test,smask_test)
+										bins = pf.hist(save_path, signal_loss, noise_loss, plot=plot)
+										threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors, true_pos_array = pf.noise_reduction_curve_single_model(
+																																									model_name=model_name,
+																																									save_path=save_path,
+																																									fpr=fpr, 
+																																									plot=plot, 
+																																									signal_loss=signal_loss, 
+																																									noise_loss=noise_loss)
+										if number_of_same_model > 1:
+											total_epochs += epochs
+											epochs = total_epochs
+										results = results.append({'Model name': model_name,
+																'Model type':model_type,
+																'Epochs':epochs,   
+																'Batch': batch, 
+																'Kernel':kernel, 
+																'Learning rate':learning_rate, 
+																'False pos.':fpr, 
+																'True pos.':tpr, 
+																'Threshold value':threshold_value, 
+																'Latent space':latent_size, 
+																'Number of filters':filters, 
+																'Conv. in rows':conv_in_row,
+																'Flops':flops,
+																'Layers':layers, 
+																'Noise reduction':noise_reduction_factors,
+																'True pos. array':true_pos_array,
+																'Signal loss':signal_loss,
+																'Noise loss':noise_loss,
+																'Act. last layer':last_activation_function,
+																'Activation func. rest':activation_function,
+																'Signal ratio':signal_ratio},
+																ignore_index=True)
+										recycling_model = autoencoder
+										model_number += 1
 
 results.to_csv(folder_path + f'CNN_{folder}/' + 'results.csv')  
 pf.plot_table(folder_path + f'CNN_{folder}', headers=['Model name',
                                 'Model type',
 																'Epochs',
+																'Signal ratio',
                                 'Batch', 
                                 'Kernel', 
                                 'Learning rate', 
-                                'False pos.', 
-                                'True pos.', 
-                                'Threshold value', 
+																'Conv. in rows',
                                 'Latent space', 
                                 'Number of filters', 
                                 'Flops',
                                 'Layers',
                                 'Act. last layer',
                                 'Activation func. rest'])  
-pf.noise_reduction_from_results(pd.read_csv(folder_path + f'CNN_{folder}' + '/results.csv'), x_low_lim=0.8, save_path= folder_path + f'CNN_{folder}', name_prefix='', best_model='' )
+pf.noise_reduction_from_results(pd.read_csv(folder_path + f'CNN_{folder}' + '/results.csv'), 
+														x_low_lim=0.8, 
+														save_path= folder_path + f'CNN_{folder}', 
+														name_prefix='', 
+														best_model='' )
 
 print()                   

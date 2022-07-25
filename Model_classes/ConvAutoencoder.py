@@ -49,8 +49,11 @@ class ConvAutoencoder:
         layer = Conv1D(filters=f, kernel_size=kernel, padding=padding, activation=activation_function)(layer)
       layer = BatchNormalization()(layer) 
 
-    
-    layer = Conv1D(filters=1, kernel_size=kernel, padding='same', activation=activation_function)(layer) 
+    if activation_function == 'LeakyRelu':
+        layer = Conv1D(filters=f, kernel_size=kernel, padding=padding)(layer)
+        layer = LeakyReLU()(layer)
+    else:    
+      layer = Conv1D(filters=1, kernel_size=kernel, padding='same', activation=activation_function)(layer) 
     
     if last_activation_function == 'linear': 
        layer = Dense(units=1)(layer)

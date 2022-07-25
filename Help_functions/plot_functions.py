@@ -112,6 +112,51 @@ def prep_loss_values(model, x, smask):
 
   return signal_loss, noise_loss
 
+def integrated_loss_values(model, x, smask):
+  data_bins = np.size(x[0])
+  x_signal = x[smask].reshape((121594,100))
+  x_noise = x[~smask].reshape((243188,100))
+  
+  x_pred_noise = model.predict(x_noise).reshape((243188,100))
+  x_pred_signal = model.predict(x_signal).reshape((121594,100))
+
+  noise_residual = np.abs(x_noise-x_pred_noise)
+  signal_residual = np.abs(x_signal-x_pred_signal)
+  len_signal = len(signal_residual)
+  len_noise = len(noise_residual)
+  signal_residual_integration_value = np.zeros(len_signal)
+  noise_residual_integration_value = np.zeros(len_noise) 
+  time_range = np.linspace(0,0.1,100)
+  for i in range(len_signal):
+    signal_residual_integration_value[i] = integrate.simps(y=signal_residual[i], x=time_range)
+  for i in range(len_noise):  
+    noise_residual_integration_value[i] = integrate.simps(y=noise_residual[i], x=time_range)  
+
+  return signal_residual_integration_value, noise_residual_integration_value
+
+def max_loss_values(model, x, smask):
+  x_signal = x[smask].reshape((121594,100))
+  x_noise = x[~smask].reshape((243188,100))
+  
+  x_pred_noise = model.predict(x_noise).reshape((243188,100))
+  x_pred_signal = model.predict(x_signal).reshape((121594,100))
+
+  noise_residual = np.abs(x_noise-x_pred_noise)
+  signal_residual = np.abs(x_signal-x_pred_signal) 
+
+  len_signal = len(signal_residual)
+  len_noise = len(noise_residual) 
+
+  signal_value = np.zeros(len_signal)
+  noise_value = np.zeros(len_noise) 
+
+  signal_value = np.max(signal_residual, axis=1)
+  noise_value = np.max(noise_residual,axis=1)
+
+  return signal_value, noise_value
+
+
+
 def hist(path, signal_loss, noise_loss, resolution=100, plot=True):
   
   max_value = np.max(signal_loss)
@@ -278,7 +323,7 @@ def confusion_matrix(threshold_value, tpr, fpr, tnr, fnr):
   print(f'Confusion matrix with threshold value at {threshold_value:.2e}')  
   print(tabulate(tabel, headers='firstrow'))  
 
-def noise_reduction_curve_single_model(model_name, save_path, fpr, x_test, smask_test, signal_loss, noise_loss, plot=True, x_low_lim=0.8):
+def noise_reduction_curve_single_model(model_name, save_path, fpr,signal_loss, noise_loss, plot=True, x_low_lim=0.8):
   """
     This function takes signal and noise loss as arguments. They are 
     arrays from mse calculating. It calculates tpr, fpr, noise_reduction_factor
@@ -286,7 +331,7 @@ def noise_reduction_curve_single_model(model_name, save_path, fpr, x_test, smask
     
     Args: 
       model_name: model_name
-      path: where the plots saves
+      save_path: where the plots saves incl. name e.g. your_path/model_name
       fpr: False Positive Rate 
       x_low_lim: limit for lowest x value on plot (highest=1)
       signal_loss: calculated in prep_loss_values()
@@ -519,9 +564,9 @@ def convert_result_dataframe_string_to_list(result_string):
       temp_tpr.append(float(x))
   return temp_tpr
 
-def plot_performance(path, x_test, smask_test, save_path, std, mean):
+def plot_performance(model, x_test, smask_test, save_path, std, mean):
   
-  model = load_model(path)
+  #model = load_model(path)
   #print(model.summary())
 
   
@@ -540,7 +585,7 @@ def plot_performance(path, x_test, smask_test, save_path, std, mean):
   x_signal = dm.unnormalizing_data(x_signal, std=std, mean=mean)
   x_pred_signal = dm.unnormalizing_data(x_pred_signal, std=std, mean=mean)
   res_signal = x_signal - x_pred_signal
-  end_name = path[-18:-3]
+  end_name = save_path[-15:]
   if end_name[0] == 'N':
     end_name = 'C' + end_name
   fig, axis = plt.subplots(2,2)
@@ -569,11 +614,12 @@ def plot_performance(path, x_test, smask_test, save_path, std, mean):
   fig.suptitle(f'Model {end_name}', fontsize=12)
   
   plt.tight_layout()
-  plt.savefig(save_path + f'{end_name}_Signal_and_noise_pred')
+  plt.savefig(save_path + '_Signal_and_noise_pred')
   plt.show()
   plt.cla()
 
 def integration_test(x_test, smask_test):
+
     test_size = 100000
     signal = x_test[smask_test].reshape((121594,100))[:test_size]
     noise = x_test[~smask_test].reshape((243188,100))[:test_size]
@@ -626,3 +672,67 @@ def integration_test(x_test, smask_test):
     plt.xlim(0.75,1)
     plt.grid()
     plt.show()  
+
+def from_string_to_numpy(column):
+  
+  column_array = np.asarray(column)[0][0]
+  column_array = column_array.split('[')[1]
+  column_array = column_array.split(']')[0]
+  column_array = column_array.split(' ')
+  column_array = [float(x) for x in column_array]
+  column_array = np.asarray(column_array)
+  return column_array
+  
+
+def find_best_model_in_folder(folder_path='/home/halin/Autoencoder/Models/', save_path='/home/halin/Autoencoder/Models/mixed_models/', number_of_models=10):
+  
+  max_value = [0]*number_of_models
+  import re
+  name_best_model = ['']*number_of_models
+  result_dic = {}
+  for i in range(101,138):
+    result_path = folder_path + f'CNN_{i}/results.csv'
+    try:
+      results = pd.read_csv(result_path)
+    except OSError as e:
+      print(f'No file in folder CNN_{i}')
+      continue
+
+    (rows, cols) = results.shape
+    for j in range(rows):
+        noise_reduction = results.loc[[j],['Noise reduction']]
+        noise_reduction = from_string_to_numpy(noise_reduction)
+        noise_reduction = np.flip(noise_reduction)
+        x_integration = results.loc[[j],['True pos. array']]
+        x_integration = from_string_to_numpy(x_integration)
+        x_integration = np.flip(x_integration)
+        model_name = results.loc[[j], ['Model name']].squeeze()
+        
+        
+        integration_value = np.trapz(noise_reduction,x=x_integration)
+        #integration_value = np.sum(noise_reduction)
+        for k in range(len(max_value)):
+          if integration_value > max_value[k]:
+              max_value.insert(k, integration_value)
+              max_value.pop()
+              name_best_model.insert(k, model_name)
+              name_best_model.pop()
+              break
+    
+  best_models = name_best_model
+  path=folder_path
+  save_path = save_path + 'mixed_results.csv'
+  dm.make_dataframe_of_collections_of_models(best_models=best_models,save_path=save_path,path=path)
+  plot_table(path + 'mixed_models',
+              table_name='mixed_results.csv', 
+              headers=['Model name', 
+                'Epochs', 
+                'Batch', 
+                'Kernel', 
+                'Learning rate',
+                'Number of filters', 
+                'Latent space',
+                'Act. last layer', 
+                'Flops', 'Layers'])
+  results = pd.read_csv(save_path)
+  noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'mixed_models')   

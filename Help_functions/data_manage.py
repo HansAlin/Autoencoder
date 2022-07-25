@@ -21,7 +21,7 @@ def unnormalizing_data(normalized_data, std, mean):
   data = normalized_data*std + mean
   return data
 
-def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/', small_test_set=1000, number_of_files=10):
+def load_data(all_signals_for_testing=True, all_samples=True, data_path='/home/halin/Autoencoder/Data/', small_test_set=1000, number_of_files=10):
   """
     This function loads data from ARIANNA group, downloaded localy
     Args:
@@ -54,15 +54,21 @@ def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/', small
   signal = signal[shuffle]
 
   number_of_test_samples = 0
-  if all_signals:
+  if all_samples:
     number_of_test_samples = len(signal)
   else:  
     number_of_test_samples = small_test_set
 
+  if all_signals_for_testing:
+    signal_test = signal[:number_of_test_samples]
+    noise_test = noise[:number_of_test_samples*2]
+  else:
+    number_of_test_samples = np.floor(number_of_test_samples/2).astype(int)
+    signal_test = signal[:number_of_test_samples]
+    noise_test = noise[:number_of_test_samples*2]  
   
 
-  signal_test = signal[:number_of_test_samples]
-  noise_test = noise[:number_of_test_samples*2]
+  
   
   signal = signal[number_of_test_samples:]
   noise = noise[number_of_test_samples*2:]
@@ -79,7 +85,7 @@ def load_data(all_signals=True, data_path='/home/halin/Autoencoder/Data/', small
 
   return x_test, y_test, smask_test, signal, noise, std, mean 
 
-def create_data(signal, noise, signal_ratio=0, test_run=False ):
+def create_data(signal, noise, signal_ratio=0, test_run=False, maximum_ratio=0.1 ):
   """
     This function creates training(validation) and test data based on choosen 
     signal ratio in sample.
@@ -94,13 +100,22 @@ def create_data(signal, noise, signal_ratio=0, test_run=False ):
   
   mini_batch_size = 10000
   number_of_noise_samples = np.size(noise[:,0])
+  number_of_signal_samples = np.size(signal[:,0])
 
   if test_run:
     noise_train = noise[:mini_batch_size]
     signal_train = signal[:mini_batch_size]
-  else:  
-    noise_train = noise
-    number_of_train_signals = np.floor((number_of_noise_samples)*signal_ratio).astype(int)
+  else: 
+    if (number_of_signal_samples and maximum_ratio) != 0: 
+      number_of_train_noise = np.floor(number_of_signal_samples/maximum_ratio).astype(int)
+      noise_train = noise[:number_of_train_noise]
+    else:
+      noise_train = noise[:number_of_noise_samples]
+      
+    if signal_ratio > 0:
+      number_of_train_signals = np.floor((number_of_train_noise) / (1/signal_ratio - 1)).astype(int)
+    else:
+      number_of_train_signals = 0
     signal_train = signal[:number_of_train_signals]
 
 
