@@ -684,13 +684,13 @@ def from_string_to_numpy(column):
   return column_array
   
 
-def find_best_model_in_folder(folder_path='/home/halin/Autoencoder/Models/', save_path='/home/halin/Autoencoder/Models/mixed_models/', number_of_models=10):
+def find_best_model_in_folder(folder_path='/home/halin/Autoencoder/Models/', save_path='/home/halin/Autoencoder/Models/mixed_models/', number_of_models=10, terms_of_condition='', value_of_condition=''):
   
   max_value = [0]*number_of_models
   import re
   name_best_model = ['']*number_of_models
   result_dic = {}
-  for i in range(101,138):
+  for i in range(101,148):
     result_path = folder_path + f'CNN_{i}/results.csv'
     try:
       results = pd.read_csv(result_path)
@@ -698,41 +698,60 @@ def find_best_model_in_folder(folder_path='/home/halin/Autoencoder/Models/', sav
       print(f'No file in folder CNN_{i}')
       continue
 
-    (rows, cols) = results.shape
-    for j in range(rows):
-        noise_reduction = results.loc[[j],['Noise reduction']]
-        noise_reduction = from_string_to_numpy(noise_reduction)
-        noise_reduction = np.flip(noise_reduction)
-        x_integration = results.loc[[j],['True pos. array']]
-        x_integration = from_string_to_numpy(x_integration)
-        x_integration = np.flip(x_integration)
-        model_name = results.loc[[j], ['Model name']].squeeze()
-        
-        
-        integration_value = np.trapz(noise_reduction,x=x_integration)
-        #integration_value = np.sum(noise_reduction)
-        for k in range(len(max_value)):
-          if integration_value > max_value[k]:
-              max_value.insert(k, integration_value)
-              max_value.pop()
-              name_best_model.insert(k, model_name)
-              name_best_model.pop()
-              break
     
-  best_models = name_best_model
-  path=folder_path
-  save_path = save_path + 'mixed_results.csv'
-  dm.make_dataframe_of_collections_of_models(best_models=best_models,save_path=save_path,path=path)
-  plot_table(path + 'mixed_models',
-              table_name='mixed_results.csv', 
-              headers=['Model name', 
-                'Epochs', 
-                'Batch', 
-                'Kernel', 
-                'Learning rate',
-                'Number of filters', 
-                'Latent space',
-                'Act. last layer', 
-                'Flops', 'Layers'])
-  results = pd.read_csv(save_path)
-  noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'mixed_models')   
+    in_data = False
+    for col in results.columns:
+      if col == terms_of_condition:
+        in_data = True
+    if (in_data): # or (terms_of_condition == ''):
+      results = results[results[terms_of_condition] == value_of_condition]
+      (rows, cols) = results.shape
+      results = results.reset_index()
+      for j in range(0,rows):
+        # value = results.at([j],[terms_of_condition])
+        # if value == value_of_condition or value_of_condition == '':
+          noise_reduction = results.loc[[j],['Noise reduction']]
+          noise_reduction = from_string_to_numpy(noise_reduction)
+          noise_reduction = np.flip(noise_reduction)
+          x_integration = results.loc[[j],['True pos. array']]
+          x_integration = from_string_to_numpy(x_integration)
+          x_integration = np.flip(x_integration)
+          model_name = results.loc[[j], ['Model name']].squeeze()
+          
+          
+          integration_value = np.trapz(noise_reduction,x=x_integration)
+          #integration_value = np.sum(noise_reduction)
+          for k in range(len(max_value)):
+            if integration_value > max_value[k]:
+                max_value.insert(k, integration_value)
+                max_value.pop()
+                name_best_model.insert(k, model_name)
+                name_best_model.pop()
+                break
+  # length =  len(name_best_model)           
+  # for i in range(length):
+  #   if name_best_model[i] == '':
+  #     name_best_model.pop(i)
+  #     length -= 1
+  #     i -= 1
+  
+  best_models = list(filter(lambda a: a != '',name_best_model))
+  if len(best_models) != 0:
+    path=folder_path
+    save_path = save_path + 'mixed_results.csv'
+    dm.make_dataframe_of_collections_of_models(best_models=best_models,save_path=save_path,path=path)
+    plot_table(path + 'mixed_models',
+                table_name='mixed_results.csv', 
+                headers=['Model name', 
+                  'Epochs', 
+                  'Batch', 
+                  'Kernel', 
+                  'Learning rate',
+                  'Number of filters', 
+                  'Latent space',
+                  'Act. last layer', 
+                  'Flops', 'Layers'])
+    results = pd.read_csv(save_path)
+    noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'mixed_models')   
+  else:
+    print("No models found!")

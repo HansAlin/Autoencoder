@@ -11,18 +11,21 @@ import Help_functions.plot_functions as pf
 import Help_functions.data_manage as dm
 
 class ConvAutoencoder:
-  def build(data, filters=[32,64,128], activation_function='relu', latent_size=6, kernel=3, last_activation_function='linear'):
+  def build(data, filters=[32,64,128], activation_function='relu', latent_size=6, kernel=3, last_activation_function='linear', convs=1):
     input_data = keras.Input(shape=data[0].shape)
 
     layer = input_data
+    # TODO chnage to maxpooling and remove stride
    
     for f in filters:
-      if activation_function == 'LeakyRelu':
-        layer = Conv1D(filters=f, kernel_size=kernel, strides=2, padding='same')(layer)
-        layer = LeakyReLU()(layer)
-      else:  
-        layer = Conv1D(filters=f, kernel_size=kernel, strides=2, padding='same', activation=activation_function)(layer)
-      layer = BatchNormalization()(layer)  
+      for j in range(convs):
+        if activation_function == 'LeakyRelu':
+          layer = Conv1D(filters=f, kernel_size=kernel, strides=2, padding='same')(layer)
+          layer = LeakyReLU()(layer)
+        else: 
+          layer = Conv1D(filters=f, kernel_size=kernel, strides=2, padding='same', activation=activation_function)(layer)
+        layer = BatchNormalization()(layer)  
+      #layer = MaxPooling1D(2)(layer)
 
     volumeSize = K.int_shape(layer)  
     layer = Flatten()(layer)
@@ -39,16 +42,18 @@ class ConvAutoencoder:
       if size == 52:
         layer = keras.layers.Cropping1D(cropping=(1,1))(layer)
       elif size == 56:
-        layer = keras.layers.Cropping1D(cropping=(3,3))(layer)  
-      if activation_function == 'LeakyRelu':
-        layer = UpSampling1D()(layer)
-        layer = Conv1D(filters=f, kernel_size=kernel, padding=padding)(layer)
-        layer = LeakyReLU()(layer)
-      else: 
-        layer = UpSampling1D()(layer)
-        layer = Conv1D(filters=f, kernel_size=kernel, padding=padding, activation=activation_function)(layer)
+        layer = keras.layers.Cropping1D(cropping=(3,3))(layer) 
+      elif size == 48:
+        layer = keras.layers.ZeroPadding1D(1)(layer)  
+      layer = UpSampling1D()(layer)
+      for j in range(convs):
+        if activation_function == 'LeakyRelu':
+          layer = Conv1D(filters=f, kernel_size=kernel, padding=padding)(layer)
+          layer = LeakyReLU()(layer)
+        else: 
+          layer = Conv1D(filters=f, kernel_size=kernel, padding=padding, activation=activation_function)(layer)
       layer = BatchNormalization()(layer) 
-
+    # TODO check if this is useful ?
     if activation_function == 'LeakyRelu':
         layer = Conv1D(filters=f, kernel_size=kernel, padding=padding)(layer)
         layer = LeakyReLU()(layer)

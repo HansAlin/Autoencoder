@@ -286,4 +286,4 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 ####################### Find best model based on ####################
 ####################### reduction curve          ####################
 
-pf.find_best_model_in_folder(number_of_models=10)
+pf.find_best_model_in_folder(number_of_models=10, terms_of_condition='Act. last layer', value_of_condition='linear')
