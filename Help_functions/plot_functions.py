@@ -684,13 +684,21 @@ def from_string_to_numpy(column):
   return column_array
   
 
-def find_best_model_in_folder(folder_path='/home/halin/Autoencoder/Models/', save_path='/home/halin/Autoencoder/Models/mixed_models/', number_of_models=10, terms_of_condition='', value_of_condition=''):
+def find_best_model_in_folder(model_number=0, folder_path='/home/halin/Autoencoder/Models/', save_path='/home/halin/Autoencoder/Models/mixed_models/', number_of_models=10, terms_of_condition='', value_of_condition=''):
   
   max_value = [0]*number_of_models
   import re
   name_best_model = ['']*number_of_models
   result_dic = {}
-  for i in range(101,148):
+  start_model = 0
+  end_model = 0
+  if model_number == 0:
+    start_model = 101
+    end_model = 148
+  else:
+    start_model = model_number
+    end_model = model_number + 1  
+  for i in range(start_model,end_model):
     result_path = folder_path + f'CNN_{i}/results.csv'
     try:
       results = pd.read_csv(result_path)
@@ -744,13 +752,12 @@ def find_best_model_in_folder(folder_path='/home/halin/Autoencoder/Models/', sav
                 table_name='mixed_results.csv', 
                 headers=['Model name', 
                   'Epochs', 
-                  'Batch', 
-                  'Kernel', 
-                  'Learning rate',
                   'Number of filters', 
                   'Latent space',
                   'Act. last layer', 
-                  'Flops', 'Layers'])
+                  'Flops',
+                  'Activation func. rest',
+                  'Layers'])
     results = pd.read_csv(save_path)
     noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path + 'mixed_models')   
   else:
