@@ -83,6 +83,16 @@ def load_data(all_signals_for_testing=True, all_samples=True, data_path='/home/h
   y_test = y_test[shuffle]
   smask_test = y_test == 1
 
+  #### Just for creating plot examples runs only ones ############
+  # plot_signal_1 = x_test[smask_test][100]
+  # plot_signal_2 = x_test[smask_test][110]
+  # plot_noise_1 = x_test[~smask_test][100]
+  # plot_noise_2 = x_test[~smask_test][110]
+  # plot = np.hstack((plot_signal_1,plot_signal_2))
+  # plot = np.hstack((plot, plot_noise_1))
+  # plot = np.hstack((plot, plot_noise_2))
+  # np.save('/home/halin/Autoencoder/Data/plot_examples.npy', plot)
+
   return x_test, y_test, smask_test, signal, noise, std, mean 
 
 def create_data(signal, noise, signal_ratio=0, test_run=False, maximum_ratio=0.1 ):
@@ -162,12 +172,12 @@ def adding_noisereduction_values_to_result_table(load_path, save_path, x_test, s
 	
 	results.to_csv(save_path)
 
-def make_dataframe_of_collections_of_models(best_models, save_path, path='/home/halin/Autoencoder/Models/'):
+def make_dataframe_of_collections_of_models(best_models, save_path, path='/home/halin/Autoencoder/Models/', prefix=''):
   
   best_results = pd.DataFrame(columns=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Threshold value', 'Latent space', 'Number of filters', 'Flops', 'Layers', 'Noise reduction','True pos. array'])
   for i, model in enumerate(best_models):
     folder = model[:7]
-    results = pd.read_csv(path + folder + '/' + 'results.csv')
+    results = pd.read_csv(path + folder + '/' + prefix + 'results.csv')
     best_row_model = results.loc[results['Model name'] == model]
     
     best_results = best_results.append(best_row_model)

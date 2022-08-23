@@ -20,12 +20,12 @@ class ConvAutoencoder:
     for f in filters:
       for j in range(convs):
         if activation_function == 'LeakyRelu':
-          layer = Conv1D(filters=f, kernel_size=kernel, strides=2, padding='same')(layer)
+          layer = Conv1D(filters=f, kernel_size=kernel, strides=1, padding='same')(layer)
           layer = LeakyReLU()(layer)
         else: 
-          layer = Conv1D(filters=f, kernel_size=kernel, strides=2, padding='same', activation=activation_function)(layer)
+          layer = Conv1D(filters=f, kernel_size=kernel, strides=1, padding='same', activation=activation_function)(layer)
         layer = BatchNormalization()(layer)  
-      #layer = MaxPooling1D(2)(layer)
+      layer = MaxPooling1D(2)(layer)
 
     volumeSize = K.int_shape(layer)  
     layer = Flatten()(layer)

@@ -1,5 +1,6 @@
 
 from cProfile import label
+from cmath import nan
 from gpuutils import GpuUtils
 
 GpuUtils.allocate(gpu_count=1, framework='keras')
@@ -117,25 +118,28 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 
 
 
-###########  Add models to a dataframe   ##############
-# folder = '139'
+##########  Add models to a dataframe   ##############
+# folder = '150'
+# name_prefix = 'test_'
 # folder_path = '/home/halin/Autoencoder/Models/'
 # load_path = '/home/halin/Autoencoder/Models/' + 'CNN_' + folder
 # data_url = '/home/halin/Autoencoder/Data/'
 # save_path = load_path + '/' + folder
 # models = cm.load_models(path=load_path)
-# filterss = [[32,64,128,256]]
-# conv_in_rows = [2]
-# activation_functions = ['relu'] 
-# latent_sizes = [2, 7]#
-# learning_rates = [0.0001]
-# kernels = [3,9,27]
-# last_activation_functions=['linear']#, 
-# epoch_distribution =[1000]#,10,100] # [10,20,60,180,440] #  [10] # Epochs per run
 
+# filterss = [[32,64,128,256],[32,64,128]]
+# conv_in_rows = [1]
+# activation_functions = ['relu'] 
+# latent_sizes = [64]#
+# learning_rates = [0.0001]
+# kernels = [3]
+# last_activation_functions=['linear', 'tanh']#, 
+# epoch_distribution =[11, 1511]#,10,100] # [10,20,60,180,440] #  [10] # Epochs per run
+# signal_ratios = [0]
 # number_of_same_model = len(epoch_distribution)
-# batches=[16,32,64]
-# x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals=True,
+# batches=[1024]
+# x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_for_testing=True,
+# 																																		 all_samples=True,						
 # 																																		 data_path=data_url, 
 # 																																		 small_test_set=1000,
 # 																																		 number_of_files=10)
@@ -159,7 +163,8 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 #                                 'Signal loss',
 #                                 'Noise loss',
 #                                 'Act. last layer',
-#                                 'Activation func. rest'])
+#                                 'Activation func. rest',
+# 								'Signal ratio'])
 # j = 0
 # for filters in filterss:
 # 	layers = len(filters)
@@ -172,47 +177,51 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 # 							for batch in batches:
 # 								total_epochs = 0
 # 								for i in range(number_of_same_model):
-# 									model = models[j]
-# 									model_name = f'{folder}_model_{j+1}'
-# 									flops = get_flops(model)
-# 									epochs = epoch_distribution[i]
-# 									signal_loss, noise_loss = pf.prep_loss_values(model,x_test,smask_test)
-# 									threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors, true_pos_array = pf.noise_reduction_curve_single_model(
-# 																																								model_name=model_name,
-# 																																								save_path=save_path,
-# 																																								fpr=0.05, 
-# 																																								plot=False, 
-# 																																								signal_loss=signal_loss, 
-# 																																								noise_loss=noise_loss)
-# 									results = results.append({'Model name': model_name,
-# 															'Model type':model_type,
-# 															'Epochs':epochs,   
-# 															'Batch': batch, 
-# 															'Kernel':kernel, 
-# 															'Learning rate':learning_rate, 
-# 															'False pos.':fpr, 
-# 															'True pos.':tpr, 
-# 															'Threshold value':threshold_value, 
-# 															'Latent space':latent_size, 
-# 															'Number of filters':filters, 
-# 															'Conv. in rows':conv_in_row,
-# 															'Flops':flops,
-# 															'Layers':layers, 
-# 															'Noise reduction':noise_reduction_factors,
-# 															'True pos. array':true_pos_array,
-# 															'Signal loss':signal_loss,
-# 															'Noise loss':noise_loss,
-# 															'Act. last layer':last_activation_function,
-# 															'Activation func. rest':activation_function},
-# 															ignore_index=True)	
-# 									j += 1																																				
+# 									for signal_ratio in signal_ratios:
+# 										model = models[j]
+# 										model_name = f'{folder}_model_{j+1}'
+# 										j += 1
+# 										flops = get_flops(model)
+# 										epochs = epoch_distribution[i]
+# 										signal_loss, noise_loss = pf.prep_loss_values(model,x_test,smask_test)
+# 										threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors, true_pos_array = pf.noise_reduction_curve_single_model(
+# 																																																																								model_name=model_name,
+# 																																																																								save_path=save_path,
+# 																																																																								fpr=0.05, 
+# 																																																																								plot=False, 
+# 																																																																								signal_loss=signal_loss, 
+# 																																																																								noise_loss=noise_loss)
+# 										results = results.append({'Model name': model_name,
+# 																'Model type':model_type,
+# 																'Epochs':epochs,   
+# 																'Batch': batch, 
+# 																'Kernel':kernel, 
+# 																'Learning rate':learning_rate, 
+# 																'False pos.':fpr, 
+# 																'True pos.':tpr, 
+# 																'Threshold value':threshold_value, 
+# 																'Latent space':latent_size, 
+# 																'Number of filters':filters, 
+# 																'Conv. in rows':conv_in_row,
+# 																'Flops':flops,
+# 																'Layers':layers, 
+# 																'Noise reduction':noise_reduction_factors,
+# 																'True pos. array':true_pos_array,
+# 																'Signal loss':signal_loss,
+# 																'Noise loss':noise_loss,
+# 																'Act. last layer':last_activation_function,
+# 																'Activation func. rest':activation_function,
+# 																'Signal ratio':signal_ratio},
+# 																ignore_index=True)
+																																															
   
 
 
-# results.to_csv(folder_path + f'CNN_{folder}/' + 'test_results.csv')   
-# pf.plot_table(folder_path + f'CNN_{folder}', table_name='test_results.csv',headers=['Model name',
+# results.to_csv(folder_path + f'CNN_{folder}/' + name_prefix + 'results.csv')
+# pf.plot_table(folder_path + f'CNN_{folder}', table_name=name_prefix + 'results.csv', headers=['Model name',
 #                                 'Model type',
 # 																'Epochs',
+# 																'Signal ratio',
 #                                 'Batch', 
 #                                 'Kernel', 
 #                                 'Learning rate', 
@@ -222,11 +231,12 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 #                                 'Flops',
 #                                 'Layers',
 #                                 'Act. last layer',
-#                                 'Activation func. rest']) 
-# pf.noise_reduction_from_results(pd.read_csv(folder_path + f'CNN_{folder}' + '/test_results.csv'), 
+#                                 'Activation func. rest'])    
+
+# pf.noise_reduction_from_results(pd.read_csv(folder_path + f'CNN_{folder}' + '/results.csv'), 
 # 														x_low_lim=0.8, 
 # 														save_path= folder_path + f'CNN_{folder}', 
-# 														name_prefix='Test_', 
+# 														name_prefix=name_prefix, 
 # 														best_model='' )
 
 
@@ -275,15 +285,82 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 
 
 # ######################   Test new loss computation  ###############
-# x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data()
-# model_path = '/home/halin/Autoencoder/Models/CNN_137/CNN_137_model_9.h5'
-# save_path = '/home/halin/Autoencoder/Models/test_models/test_of_new_loss'
-# model = load_model(model_path)
-# signal_loss, noise_loss = pf.max_loss_values(model,x_test,smask_test)
-# _ = pf.hist(path=save_path,signal_loss=signal_loss, noise_loss=noise_loss)
-# pf.noise_reduction_curve_single_model(model_name='Test_CNN_137_model_9', save_path=save_path, signal_loss=signal_loss, noise_loss=noise_loss, fpr=0.05)
+######################## and add to dataframe new data ##############
+start_folder = 153
+end_folder = 154 
+x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data()
+folder_path = '/home/halin/Autoencoder/Models/'
 
-####################### Find best model based on ####################
+for folder in range(start_folder, end_folder):
+  result_path = folder_path + f'CNN_{folder}/results.csv'
+  prefix = 'test_'  # to not interfere with existing data
+  results = pd.read_csv(result_path)
+  pf.change_new_results(results=results,
+                  x_test=x_test,
+                  smask_test=smask_test, 
+                  prefix=prefix,
+                  folder_path=folder_path, 
+                  folder=folder) 
+  pf.plot_table(folder_path + f'CNN_{folder}', table_name=prefix + 'results.csv', headers=['Model name',								
+                                  'Epochs',
+                                  'Batch', 
+                                  'Kernel', 
+                                  'Learning rate', 
+                                  'Latent space', 
+                                  'Number of filters', 
+                                  'Flops',
+                                  'True pos.',
+                                  'Layers'])  
+  pf.noise_reduction_from_results(pd.read_csv(folder_path + f'CNN_{folder}/' + prefix +  'results.csv'), 
+                              x_low_lim=0.95, 
+                              save_path= folder_path + f'CNN_{folder}', 
+                              name_prefix=prefix, 
+                              best_model='' )
+# # ####################### Find best model based on ####################
 ####################### reduction curve          ####################
 
-pf.find_best_model_in_folder(model_number=132, number_of_models=7, terms_of_condition='Kernel', value_of_condition=3) #Act. last layer linear
+# pf.find_best_model_in_folder(start_model=138,
+# 							end_model=139, #exclusive	
+#                             number_of_models=10, 
+#                             terms_of_condition='',
+#                             value_of_condition='',
+#                             prefix='test_',
+#                             headers=['Model name', 
+#                                     'Epochs', 
+#                                     'Number of filters',  
+#                                     'Kernel', 
+#                                     'Batch',
+#                                     'Latent space',
+#                                     'Act. last layer', 
+#                                     'Activation func. rest']) #Act. last layer linear
+
+#x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data()
+std = 0.011491077671030752
+mean = 2.6521230839856967e-08
+plot_examples = np.load('/home/halin/Autoencoder/Data/plot_examples.npy')
+start_folder = 153
+end_folder = 154
+for folder in range(start_folder, end_folder):
+
+    model_number = 1
+    folder_path = '/home/halin/Autoencoder/Models/'
+    results_path = folder_path + f'CNN_{folder}/results.csv'
+    try:
+      results = pd.read_csv(results_path)
+    except OSError as e:
+      print(f'No file in folder CNN_{folder}')
+      continue
+    (rows, cons) = results.shape
+    for model_number in range(1,rows + 1):
+        save_path = f'/home/halin/Autoencoder/Models/CNN_{folder}/CNN_{folder}_model_{model_number}'
+        model_path = folder_path + f'CNN_{folder}/CNN_{folder}_model_{model_number}.h5'
+        model = load_model(model_path)
+        sufix = 1
+        to_plot = np.vstack((plot_examples[:,0], plot_examples[:,2]))
+        pf.plot_single_performance(model,to_plot,save_path,std,mean, sufix=sufix)
+        plt.cla()
+        sufix = 2
+        to_plot = np.vstack((plot_examples[:,1], plot_examples[:,3]))
+        pf.plot_single_performance(model,to_plot,save_path,std,mean, sufix=sufix)
+        plt.cla()
+

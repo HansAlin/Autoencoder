@@ -46,17 +46,17 @@ def activation_function_6(x):
   return K.tanh(x)*2**(3) 
 
 
-filterss = [[32,64,128],[32,64,128,256]] # ,[128,256,512] filter in layers [50,25] 50 means filters (or units if dense layer)
+filterss = [[32],[32,64],[32,64,128]] # ,[128,256,512] filter in layers [50,25] 50 means filters (or units if dense layer)
 																 # in first layer and 25 filters in second layer
 conv_in_rows = [1]
-activation_functions = ['relu'] #
-latent_sizes = [64]#
+activation_functions = ['tanh'] #
+latent_sizes = [2,7,64]#
 kernels = [3]
-last_activation_functions=['linear','tanh']#, 
+last_activation_functions=['linear']#, 
 learning_rates = [0.0001]
-batches=[1024]#[1] #
-epochs = 1
-epoch_distribution =[11, 1500]#,10,100] # [10,20,60,180,440] #  [10] # Epochs per run
+batches=[512,1024]#[1] #
+epochs = 1 
+epoch_distribution =[1500]#,10,100] # [10,20,60,180,440] #  [10] # Epochs per run
 number_of_same_model = len(epoch_distribution)
 test_run = False
 plot=True
@@ -68,7 +68,7 @@ if 0.0 in signal_ratios and len(signal_ratios) == 1:
 	all_signals = True
 verbose=1
 fpr=0.05
-folder = 150
+folder = 153
 number_of_data_files_to_load = 10 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
@@ -97,7 +97,7 @@ results = pd.DataFrame(columns=['Model name',
                                 'Activation func. rest',
 																'Signal ratio'])
 # TODO change back to 1
-model_number = 5
+model_number = 1
 recycling_model = ''
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_for_testing=all_signals,
 																																		 all_samples=(not test_run),						
