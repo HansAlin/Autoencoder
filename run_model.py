@@ -46,29 +46,36 @@ def activation_function_6(x):
   return K.tanh(x)*2**(3) 
 
 
-filterss = [[32],[32,64],[32,64,128]] # ,[128,256,512] filter in layers [50,25] 50 means filters (or units if dense layer)
-																 # in first layer and 25 filters in second layer
-conv_in_rows = [1]
-activation_functions = ['tanh'] #
-latent_sizes = [2,7,64]#
+# TODO 
+#	# Test different architecture
+# # Plot the predictions yjat yje models predicts wrong
+#   are the special kinds of signals? 
+# # Test integration av signals and noise
+
+filterss = [[2,4,8,16]] # Next time ,,        
+model_number = 1 												
+conv_in_rows = [2] 
+activation_functions = ['relu'] #  
+latent_sizes = [8]# Next time   
 kernels = [3]
-last_activation_functions=['linear']#, 
-learning_rates = [0.0001]
-batches=[512,1024]#[1] #
+last_activation_functions=['linear']#,  
+learning_rates = [0.001, 0.0001, 0.00001]
+batches=[1024]#[1] #
 epochs = 1 
-epoch_distribution =[1500]#,10,100] # [10,20,60,180,440] #  [10] # Epochs per run
+epoch_distribution =[1500]#
 number_of_same_model = len(epoch_distribution)
 test_run = False
 plot=True
-
-signal_ratios = [0]
+ 
+signal_ratios = [0] 
 max_ratio = np.max(signal_ratios)
-all_signals = False
+all_signals = False 
 if 0.0 in signal_ratios and len(signal_ratios) == 1:
 	all_signals = True
 verbose=1
-fpr=0.05
-folder = 153
+fpr=0.05  
+x_low_lim = 0.95
+folder = 182
 number_of_data_files_to_load = 10 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
@@ -97,13 +104,14 @@ results = pd.DataFrame(columns=['Model name',
                                 'Activation func. rest',
 																'Signal ratio'])
 # TODO change back to 1
-model_number = 1
+
 recycling_model = ''
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_for_testing=all_signals,
 																																		 all_samples=(not test_run),						
 																																		 data_path=data_url, 
 																																		 small_test_set=1000,
 																																		 number_of_files=number_of_data_files_to_load)
+plot_examples = np.load('/home/halin/Autoencoder/Data/plot_examples.npy')
 
 for filters in filterss:
 	layers = len(filters)
@@ -178,13 +186,15 @@ for filters in filterss:
 										autoencoder.save((save_path + '.h5'))
 										if plot:
 											pf.loss_plot(save_path, trained_autoencoder)
-											pf.plot_performance(autoencoder,
-																					x_test=x_test,
-																					smask_test=smask_test,
-																					save_path=save_path,
-																					std=std,
-																					mean=mean)
-										signal_loss, noise_loss = pf.prep_loss_values(autoencoder,x_test,smask_test)
+											sufix = 1
+											to_plot = np.vstack((plot_examples[:,0], plot_examples[:,2]))
+											pf.plot_single_performance(autoencoder,to_plot,save_path,std,mean, sufix=sufix)
+											plt.cla()
+											sufix = 2
+											to_plot = np.vstack((plot_examples[:,1], plot_examples[:,3]))
+											pf.plot_single_performance(autoencoder,to_plot,save_path,std,mean, sufix=sufix)
+											plt.cla()
+										signal_loss, noise_loss = pf.costum_loss_values(autoencoder,x_test,smask_test)
 										bins = pf.hist(save_path, signal_loss, noise_loss, plot=plot)
 										threshold_value, tpr, fpr, tnr, fnr, noise_reduction_factors, true_pos_array = pf.noise_reduction_curve_single_model(
 																																									model_name=model_name,
@@ -192,7 +202,8 @@ for filters in filterss:
 																																									fpr=fpr, 
 																																									plot=plot, 
 																																									signal_loss=signal_loss, 
-																																									noise_loss=noise_loss)
+																																									noise_loss=noise_loss,
+																																									x_low_lim=x_low_lim)
 										if number_of_same_model > 1:
 											total_epochs += epochs
 											epochs = total_epochs
@@ -237,7 +248,7 @@ pf.plot_table(folder_path + f'CNN_{folder}', headers=['Model name',
                                 'Act. last layer',
                                 'Activation func. rest'])  
 pf.noise_reduction_from_results(pd.read_csv(folder_path + f'CNN_{folder}' + '/results.csv'), 
-														x_low_lim=0.8, 
+														x_low_lim=0.95, 
 														save_path= folder_path + f'CNN_{folder}', 
 														name_prefix='', 
 														best_model='' )

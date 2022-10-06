@@ -42,7 +42,7 @@ def load_data(all_signals_for_testing=True, all_samples=True, data_path='/home/h
   noise = np.vstack((noise,np.load(data_path + 'trimmed100_data_noise_3.6SNR_1ch_0010.npy')))
   signal = np.load(data_path + "trimmed100_data_signal_3.6SNR_1ch_0000.npy")
   signal = np.vstack((signal,np.load(data_path + "trimmed100_data_signal_3.6SNR_1ch_0001.npy")))
-  n_classes = 2
+  #n_classes = 2
  
   noise, signal, std, mean = normalizing_data(signal, noise)
   
@@ -177,10 +177,18 @@ def make_dataframe_of_collections_of_models(best_models, save_path, path='/home/
   best_results = pd.DataFrame(columns=[ 'Model name', 'Epochs', 'Batch', 'Kernel', 'Learning rate', 'Signal ratio', 'False pos.', 'True pos.', 'Threshold value', 'Latent space', 'Number of filters', 'Flops', 'Layers', 'Noise reduction','True pos. array'])
   for i, model in enumerate(best_models):
     folder = model[:7]
-    results = pd.read_csv(path + folder + '/' + prefix + 'results.csv')
-    best_row_model = results.loc[results['Model name'] == model]
-    
-    best_results = best_results.append(best_row_model)
+    # TODO remove next two lines
+    if folder == '171_mod':
+      print('error')
+      
+    try:
+      results = pd.read_csv(path + folder + '/' + prefix + 'results.csv')
+    except OSError as e:
+      print(f'No file in folder CNN_{folder}')
+      continue  
+    if model in results.values:
+      best_row_model = results.loc[results['Model name'] == model]
+      best_results = best_results.append(best_row_model)
     
   
   best_results.to_csv(save_path)

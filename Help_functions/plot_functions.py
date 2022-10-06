@@ -1,3 +1,4 @@
+from ctypes import sizeof
 from tensorflow import keras
 import numpy as np
 from matplotlib import pyplot as plt
@@ -5,6 +6,7 @@ import pandas as pd
 from tensorflow.keras.models import load_model
 import Help_functions.data_manage as dm
 from scipy import integrate
+
 
 
 def find_signal(model, treshold, x, smask, under_treshold=True):
@@ -188,8 +190,6 @@ def max_loss_values(model, x, smask):
 
   return signal_value, noise_value
 
-
-
 def hist(path, signal_loss, noise_loss, resolution=100, plot=True):
   
   max_value = np.max(signal_loss)
@@ -197,7 +197,7 @@ def hist(path, signal_loss, noise_loss, resolution=100, plot=True):
   low_lim = np.floor(np.log10(min_value))
   high_lim = np.floor(np.log10(max_value))
   bins = np.logspace(low_lim,high_lim , resolution)
-
+  plt.close('all') 
   if plot:
     
     ax1 = plt.hist(noise_loss, bins=bins, log=True, alpha=0.5, density=True)
@@ -502,8 +502,7 @@ def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs',
   result_path = path + '/' + table_name
   results = pd.read_csv(result_path)
   fig, ax = plt.subplots()#1,1, figsize=(12,4)
-  #fig.patch.set_visible(False)
-
+  # #fig.patch.set_visible(False)
 
   ax.axis('off')
   ax.axis('tight')
@@ -521,10 +520,13 @@ def plot_table(path, table_name='results.csv', headers=[ 'Model name', 'Epochs',
 
   savefig_path = path + '/' + prefix + atempt + sufix + '_table.png'
   plt.savefig(savefig_path,
+              
               bbox_inches='tight',
               edgecolor=fig.get_edgecolor(),
               facecolor=fig.get_facecolor(),
-              dpi=150 )
+              dpi=150
+               )
+  #df_styled = results.style.background_gradient()             
   plt.show() 
   plt.cla()  
 
@@ -538,7 +540,7 @@ def noise_reduction_from_results(results, best_model, x_low_lim=0.8, save_path='
       x_low_lim: limit for lowest x value on plot (highest=1)
 
   """
-  
+  plt.close('all') 
   fig, ax = plt.subplots()  
   if isinstance(best_model, pd.DataFrame):
     value1 = best_model['True pos. array'][0]
@@ -600,7 +602,8 @@ def convert_array_to_string(array_list):
     else:
       result_string += str(array_list[i])
   result_string += ']'
-  return result_string    
+  return result_string  
+
 def plot_performance(model, x_test, smask_test, save_path, std, mean):
   
   #model = load_model(path)
@@ -699,9 +702,6 @@ def plot_single_performance(model, plot_examples, save_path, std, mean, prefix_h
   plt.show()
   plt.cla()
 
-
-
-
 def integration_test(x_test, smask_test):
 
     test_size = 100000
@@ -759,6 +759,7 @@ def integration_test(x_test, smask_test):
 
 def from_string_to_numpy(column):
   
+  
   column_array = np.asarray(column)[0][0]
   column_array = column_array.split('[')[1]
   column_array = column_array.split(']')[0]
@@ -782,10 +783,16 @@ def change_new_results(results, folder, x_test,smask_test, prefix='', folder_pat
    
   """
   (rows, cols) = results.shape
+  # TODO change back to 1
   for model_number in range(1,rows + 1):
       model_path = folder_path + f'CNN_{folder}/CNN_{folder}_model_{model_number}.h5'
       save_path = folder_path + f'CNN_{folder}/' + prefix + f'CNN_{folder}_model_{model_number}'
-      model = load_model(model_path)
+      try:
+       model = load_model(model_path) 
+      except OSError as e:
+        print(f'No model {model_number}')
+        continue
+      
       signal_loss, noise_loss = costum_loss_values(model,x_test,smask_test)
       _ = hist(path=save_path,signal_loss=signal_loss, noise_loss=noise_loss)
       model_name_string = f'Test_CNN_{folder}_model_{model_number}'
@@ -800,21 +807,39 @@ def change_new_results(results, folder, x_test,smask_test, prefix='', folder_pat
 
   results.to_csv(folder_path + f'CNN_{folder}/' + prefix + 'results.csv') 
 
-def find_best_model_in_folder(headers, start_model=101, end_model=150, folder_path='/home/halin/Autoencoder/Models/', save_path='/home/halin/Autoencoder/Models/mixed_models/', number_of_models=10, terms_of_condition='', value_of_condition='', prefix='' ):
-  
+def find_best_model_in_folder(headers,
+                 start_model=101, 
+                 end_model=150, 
+                 folder_path='/home/halin/Autoencoder/Models/', 
+                 save_path='/home/halin/Autoencoder/Models/mixed_models/', 
+                 number_of_models=10, 
+                 terms_of_condition ='',
+                 value_of_condition ='', 
+                 comparison = 'equal', 
+                 prefix='', 
+                 x_low_lim=0.9, 
+                 result_path = '',
+                  ):
+  single_dataframe = False                
+  if result_path != '':
+    single_dataframe = True
   max_value = [0]*number_of_models
   import re
   name_best_model = ['']*number_of_models
   result_dic = {}
-  for i in range(start_model,end_model):
+  if result_path != '':
+    start_model = 1
+    end_model = 2
 
-    # TODO change back to results.csv
+  for i in range(start_model,end_model):
     
-    result_path = folder_path + f'CNN_{i}/' + prefix + 'results.csv'
+    if not single_dataframe:
+      result_path = folder_path + f'CNN_{i}/' + prefix + 'results.csv'
+    
     try:
       results = pd.read_csv(result_path)
     except OSError as e:
-      print(f'No file in folder CNN_{i}')
+      print(f'No file in folder {result_path}')
       continue
     
     in_data = False
@@ -823,10 +848,18 @@ def find_best_model_in_folder(headers, start_model=101, end_model=150, folder_pa
     else:
       for col in results.columns:
         if col == terms_of_condition:
-          in_data = True
-          # TODO change back to ==
-          results = results[results[terms_of_condition] == value_of_condition]
-          
+          # String comparision
+          if comparison == 'equal':
+            results = results[results[terms_of_condition] == value_of_condition]
+            in_data = True
+          if comparison == 'greater':
+            results = results[results[terms_of_condition] >= value_of_condition]
+            in_data = True
+          if comparison == 'less':  
+            results = results[results[terms_of_condition] <= value_of_condition]
+            in_data = True
+           
+
     if (in_data): # or (terms_of_condition == ''):
       (rows, cols) = results.shape
       results = results.reset_index()
@@ -868,6 +901,46 @@ def find_best_model_in_folder(headers, start_model=101, end_model=150, folder_pa
                 headers=headers,
                 prefix=prefix)
     results = pd.read_csv(save_path)
-    noise_reduction_from_results(results=results, best_model='',x_low_lim=0.8, save_path=path +'mixed_models', name_prefix=prefix)   
+    noise_reduction_from_results(results=results, best_model='',x_low_lim=x_low_lim, save_path=path +'mixed_models', name_prefix=prefix)   
   else:
     print("No models found!")
+  return save_path
+
+def find_weird_signals_noise(signal_loss, noise_loss, signal, loss, limit):
+  weird_signal_index = signal_loss < limit
+  weird_noise_index = noise_loss < limit
+  signal_index_array = np.where(weird_signal_index)
+  noise_index_array = np.where(weird_noise_index)
+
+  number_of_weird_signals = len(signal_index_array)
+  number_of_weird_noise = len(noise_index_array)
+  for index in signal_index_array[0]:
+    single_signal = signal[index]
+    time = range(0,100)
+    plt.plot(time, single_signal)
+    plt.savefig('/home/halin/Autoencoder/Models/plots/wierd.png')
+
+  return 0  
+
+def find_values_from_model(folder, model_number, values_of_interest = ['Number of filters', 'Latent space']):
+  result_path = f'/home/halin/Autoencoder/Models/CNN_{folder}/results.csv'
+  try:
+    results = pd.read_csv(result_path)
+  except OSError as e:
+    print(f'No file in folder {result_path}')
+    return 0 
+
+  return_values = [0]*2#len(values_of_interest)
+  for i in range(0,len(values_of_interest)):
+    col = values_of_interest[i]
+    model_name = f'CNN_{folder}_model_{model_number}'
+    value = results[results['Model name'] == model_name][col].values[0]
+    return_values[i] = value
+    if isinstance(return_values[i], str):
+      string_value = return_values[i]
+      string_value = string_value.replace('[','')
+      string_value = string_value.replace(']','')
+
+      return_values[i] = np.fromstring(string_value, dtype=int, sep=',').tolist()
+
+  return return_values  
