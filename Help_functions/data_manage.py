@@ -180,9 +180,9 @@ def make_dataframe_of_collections_of_models(best_models, save_path, path='/home/
     # TODO remove next two lines
     if folder == '171_mod':
       print('error')
-      
+    load_path = path + folder + '/' + prefix + 'results.csv'  
     try:
-      results = pd.read_csv(path + folder + '/' + prefix + 'results.csv')
+      results = pd.read_csv(load_path)
     except OSError as e:
       print(f'No file in folder CNN_{folder}')
       continue  
@@ -192,6 +192,7 @@ def make_dataframe_of_collections_of_models(best_models, save_path, path='/home/
     
   
   best_results.to_csv(save_path)
+  return save_path
 
 def create_dataframe_of_results( model_names, path='/home/halin/Autoencoder/Models'):
   results_to_return = ''

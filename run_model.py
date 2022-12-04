@@ -23,6 +23,7 @@ from Model_classes.NewPhysicsAutoencoder import NewPhysicsAutoencoder
 from Model_classes.SecondCNNModel import SecondCNNModel
 from Model_classes.DenseModel import DenseModel
 from Model_classes.ConvAutoencoder import ConvAutoencoder
+from Model_classes.ConvAutoencoder_dropout import ConvAutoencoder_dropout
 from tensorflow.keras import backend as K
 
 ############# Costum activation function   ################3
@@ -52,35 +53,37 @@ def activation_function_6(x):
 #   are the special kinds of signals? 
 # # Test integration av signals and noise
 
-filterss = [[2,4,8,16]] # Next time ,,        
-model_number = 1 												
-conv_in_rows = [2] 
+filterss = [[32,64,128,256,512]] #,[4,8,16,32,64],[16,32,64,128,256], Next time ,, [256],[128]       
+model_number = 1 										# Naming the models 											
+conv_in_rows = [1] 									# Number of equal layers in a row
 activation_functions = ['relu'] #  
-latent_sizes = [8]# Next time   
-kernels = [3]
-last_activation_functions=['linear']#,  
-learning_rates = [0.001, 0.0001, 0.00001]
-batches=[1024]#[1] #
+latent_sizes = [8,128]# Next time [] ,64,128,256,512  
+kernels = [9] #3
+last_activation_functions=['linear']#, 'linear',   'relu'
+learning_rates = [0.001]
+batches=[1024]#[1] #1024
 epochs = 1 
-epoch_distribution =[1500]#
+epoch_distribution =[2000]#
+model_type ='ConvAutoencoder_dropout' #'ConvAutoencoder' #'DenseModel' # 'NewPhysicsAutoencoder'# 'SecondCNNModel' # 
+
+
 number_of_same_model = len(epoch_distribution)
 test_run = False
 plot=True
  
-signal_ratios = [0] 
+signal_ratios = [0] #
 max_ratio = np.max(signal_ratios)
 all_signals = False 
 if 0.0 in signal_ratios and len(signal_ratios) == 1:
 	all_signals = True
 verbose=1
 fpr=0.05  
-x_low_lim = 0.95
-folder = 182
+x_low_lim = 0.75
+folder = 196
 number_of_data_files_to_load = 10 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
 folder_path = '/home/halin/Autoencoder/Models/'
-model_type ='ConvAutoencoder' #'DenseModel' # 'NewPhysicsAutoencoder'# 'SecondCNNModel' # 
 
 results = pd.DataFrame(columns=['Model name',
 																'Model type',
@@ -130,6 +133,14 @@ for filters in filterss:
 										if number_of_same_model == 1 or i == 0:
 											if model_type == 'ConvAutoencoder':
 														(encoder, decoder, autoencoder) = ConvAutoencoder.build(data=x_test,
+																																					filters=filters, 
+																																					activation_function=activation_function,
+																																					latent_size=latent_size,
+																																					kernel=kernel,
+																																					last_activation_function=last_activation_function,
+																																					convs=conv_in_row )
+											elif model_type == 'ConvAutoencoder_dropout':
+												(encoder, decoder, autoencoder) = ConvAutoencoder_dropout.build(data=x_test,
 																																					filters=filters, 
 																																					activation_function=activation_function,
 																																					latent_size=latent_size,
@@ -233,7 +244,9 @@ for filters in filterss:
 										model_number += 1
 
 results.to_csv(folder_path + f'CNN_{folder}/' + 'results.csv')  
-pf.plot_table(folder_path + f'CNN_{folder}', headers=['Model name',
+pf.plot_table(pd.read_csv(folder_path + f'CNN_{folder}'+ '/results.csv'),
+																save_path=folder_path + f'CNN_{folder}/',	
+																 headers=['Model name',
                                 'Model type',
 																'Epochs',
 																'Signal ratio',
@@ -248,8 +261,8 @@ pf.plot_table(folder_path + f'CNN_{folder}', headers=['Model name',
                                 'Act. last layer',
                                 'Activation func. rest'])  
 pf.noise_reduction_from_results(pd.read_csv(folder_path + f'CNN_{folder}' + '/results.csv'), 
-														x_low_lim=0.95, 
-														save_path= folder_path + f'CNN_{folder}', 
+														x_low_lim=x_low_lim, 
+														save_path= folder_path + f'CNN_{folder}/', 
 														name_prefix='', 
 														best_model='' )
 

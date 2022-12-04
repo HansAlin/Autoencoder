@@ -120,7 +120,15 @@ def create_autoencoder_model(data,kernel, latent_space, number_of_filters, layer
   shape_in_put = data[1].shape
   input_data = keras.Input(shape=data[1].shape)
   
-  model = keras.Model(inputs=input_data, outputs=autoencoder(input_data, data_size, kernel, latent_space, number_of_filters, layers, convs,  activation_function_bottleneck, activation_function_last_layer))
+  model = keras.Model(inputs=input_data, 
+    outputs=autoencoder(input_data, 
+                          data_size, 
+                          kernel, 
+                          latent_space,
+                          number_of_filters, 
+                          layers, convs,  
+                          activation_function_bottleneck, 
+                          activation_function_last_layer))
   model.compile(
       loss = 'mse',
       optimizer = adam,
@@ -130,7 +138,7 @@ def create_autoencoder_model(data,kernel, latent_space, number_of_filters, layer
 
 def train_autoencoder(model, x_train, epochs=50, batch=16, verbose=0):
   early_stopping = keras.callbacks.EarlyStopping(
-                                    monitor="mse",
+                                    monitor="val_mse",
                                     min_delta=0,
                                     patience=5,
                                     verbose=0,
