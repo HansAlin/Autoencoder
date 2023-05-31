@@ -26,64 +26,60 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 from Model_classes.ConvAutoencoder_dropout import ConvAutoencoder_dropout
 from tensorflow.keras import backend as K
 
-############# Costum activation function   ################3
-def activation_function_1(x):
-  
-  return K.tanh(x)*2**(-3)
-def activation_function_2(x):
-  
-  return K.tanh(x)*2**(-2)
-def activation_function_3(x):
-  
-  return K.tanh(x)*2**(-1)
-def activation_function_4(x):
-  
-  return K.tanh(x)*2**(1) 
-def activation_function_5(x):
-  
-  return K.tanh(x)*2**(2)
-def activation_function_6(x):
-  
-  return K.tanh(x)*2**(3) 
 
 
-# TODO 
-#	# Test different architecture
-# # Plot the predictions yjat yje models predicts wrong
-#   are the special kinds of signals? 
-# # Test integration av signals and noise
+# Specifiy the hyperparamters
 
-filterss = [[2,4,8]] #,[4,8,16,32,64],[16,32,64,128,256], Next time ,, [256],[128]       
-model_number = 1 										# Naming the models 											
-conv_in_rows = [1] 									# Number of equal layers in a row
-activation_functions = ['relu'] #  
-latent_sizes = [2]# Next time [] ,64,128,256,512  
-kernels = [9] #3
-last_activation_functions=['linear']#, 'linear',   'relu'
-learning_rates = [0.001]
-batches=[1024]#[1] #1024
-epochs = 1 
-epoch_distribution =[2000]#
-model_type ='ConvAutoencoder_dropout' #'ConvAutoencoder' #'DenseModel' # 'NewPhysicsAutoencoder'# 'SecondCNNModel' # 
+filterss = [[2,4,8]] 														# Specify the number of filters in each layer   
+model_number = 1 																# Naming the models 											
+conv_in_rows = [1] 															# Number of equal layers in a row, 
+activation_functions = ['relu'] 								# Activation function in the layers 
+latent_sizes = [2]															# Latent space  
+kernels = [9] 																	# Kernel/Filter size
+last_activation_functions=['linear']						# Last activation function
+learning_rates = [0.001]												# Learning rate
+batches=[1024]																	# Size of the batches
+epoch_distribution =[2000]											# Number of epochs, if one needs to test differnt number of epochs
+model_type ='ConvAutoencoder_dropout'						# Choose a model, these can be used
+																								# 'ConvAutoencoder' 
+																		 						# 'DenseModel' 
+																		 						# 'NewPhysicsAutoencoder'
+																		 						# 'SecondCNNModel' # 
 
 
-number_of_same_model = len(epoch_distribution)
-test_run = False
-plot=True
+# Specify if it a test run or not
+# A test run just use a fraction of the data
+test_run = True																	# True means 1000 data points
+
+# Specify if plots should be saved or not
+plot=True																				# Plots are saved
  
-signal_ratios = [0] #
+# Specify the ratio of signals in training process 
+signal_ratios = [0] 														# 0 means no signals in training set
 max_ratio = np.max(signal_ratios)
 all_signals = False 
 if 0.0 in signal_ratios and len(signal_ratios) == 1:
 	all_signals = True
-verbose=1
-fpr=0.05  
-x_low_lim = 0.75
-folder = 197 
-number_of_data_files_to_load = 10 # Max 10
-data_url = '/home/halin/Autoencoder/Data/'
 
-folder_path = '/home/halin/Autoencoder/Models/'
+# Specify training supervision
+verbose=1																				# Check Keras for 
+
+# Specify False positive rate. Not used 
+fpr=0.05  
+
+# Specify the lower limit on the plots of the
+# noise reduction curve
+x_low_lim = 0.75
+
+# The number of the first model in the test set
+folder = 999 
+
+# Specify the number of data files that should be used
+number_of_data_files_to_load = 10 							# Max 10
+
+data_url = '/Data/'
+
+folder_path = '/Models/'
 
 results = pd.DataFrame(columns=['Model name',
 																'Model type',
@@ -115,6 +111,7 @@ x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_
 																																		 small_test_set=1000,
 																																		 number_of_files=number_of_data_files_to_load)
 plot_examples = np.load('/home/halin/Autoencoder/Data/plot_examples.npy')
+number_of_same_model = len(epoch_distribution)
 
 for filters in filterss:
 	layers = len(filters)
