@@ -71,14 +71,16 @@ fpr=0.05
 # noise reduction curve
 x_low_lim = 0.75
 
-# The number of the first model in the test set
+# The number of the test set
 folder = 999 
 
 # Specify the number of data files that should be used
 number_of_data_files_to_load = 10 							# Max 10
 
+# Specify where the data is stored
 data_url = '/Data/'
 
+# Specify where to save results from models
 folder_path = '/Models/'
 
 results = pd.DataFrame(columns=['Model name',
