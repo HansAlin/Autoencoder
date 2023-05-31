@@ -237,67 +237,67 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 # ###########################    Create an encoder   ####################
 # ###########################                        ####################
 # ###########################                        ####################
-# data_url = '/home/halin/Autoencoder/Data/'
-# # folder = 174
-# # model_number = 13
-# # [filters, latent_size] = pf.find_values_from_model(folder=folder,
-# #                          model_number=model_number,
-# #                          values_of_interest=['Number of filters', 'Latent space'])
+data_url = '/home/halin/Autoencoder/Data/'
+folder = 141
+model_number = 9
+[filters, latent_size] = pf.find_values_from_model(folder=folder,
+                         model_number=model_number,
+                         values_of_interest=['Number of filters', 'Latent space'])
 
-# x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_for_testing=False,
-#                                                                 all_samples=True,						
-#                                                                 data_path=data_url, 
-#                                                                 small_test_set=1000,
-#                                                                 number_of_files=10)
-# # model_path = f'/home/halin/Autoencoder/Models/CNN_{folder}/CNN_{folder}_model_{model_number}.h5'     
-# # autoencoder = load_model(model_path)
-# # saved_weights_path = '/home/halin/Autoencoder/Models/test_models/autoencoder_weights.h5'
-# # autoencoder.save_weights(saved_weights_path, overwrite = True)
-# # (encoder, decoder, autoencoder) = ConvAutoencoder.build(data=x_test,
-# #                                                         filters=filters, 
-# #                                                         activation_function='relu',
-# #                                                         latent_size=latent_size,
-# #                                                         kernel=3,
-# #                                                         last_activation_function='linear' )
-# # encoder.load_weights(saved_weights_path, skip_mismatch = True, by_name = True) 
-# # encoder.compile(
-# #       loss = 'mse',
-# #       optimizer = 'adam',
-# #       metrics = ['mse','mae','mape'] 
-# #   )
+x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_for_testing=False,
+                                                                all_samples=True,						
+                                                                data_path=data_url, 
+                                                                small_test_set=1000,
+                                                                number_of_files=10)
+model_path = f'/home/halin/Autoencoder/Models/CNN_{folder}/CNN_{folder}_model_{model_number}.h5'     
+autoencoder = load_model(model_path)
+saved_weights_path = '/home/halin/Autoencoder/Models/test_models/autoencoder_weights.h5'
+autoencoder.save_weights(saved_weights_path, overwrite = True)
+(encoder, decoder, autoencoder) = ConvAutoencoder.build(data=x_test,
+                                                        filters=filters, 
+                                                        activation_function='relu',
+                                                        latent_size=latent_size,
+                                                        kernel=3,
+                                                        last_activation_function='linear' )
+encoder.load_weights(saved_weights_path, skip_mismatch = True, by_name = True) 
+encoder.compile(
+      loss = 'mse',
+      optimizer = 'adam',
+      metrics = ['mse','mae','mape'] 
+  )
 
-# # encoder.summary() 
-# # encoder.save('/home/halin/Autoencoder/Models/test_models/encoder.h5')  
-# encoder = load_model('/home/halin/Autoencoder/Models/test_models/encoder.h5')
-# signal_pred_values = encoder.predict(x_test[smask_test]) 
-# noise_pred_values = encoder.predict(x_test[~smask_test]) 
-# number = 1000
+encoder.summary() 
+encoder.save('/home/halin/Autoencoder/Models/test_models/encoder.h5')  
+encoder = load_model('/home/halin/Autoencoder/Models/test_models/encoder.h5')
+signal_pred_values = encoder.predict(x_test[smask_test]) 
+noise_pred_values = encoder.predict(x_test[~smask_test]) 
+number = 1000
 
-# # signal_loss, noise_loss = pf.loss_values_from_latent_space(signal_pred_values, noise_pred_values)
-# # pf.noise_reduction_curve_single_model(model_name=f'Model_{folder}_model_{model_number}',
-# #                                     fpr=0.95,
-# #                                     x_low_lim=0.8,
-# #                                     save_path='/home/halin/Autoencoder/Models/test_models/Encoder_loss',
-# #                                     signal_loss=signal_loss,
-# #                                     noise_loss=noise_loss,
-# #                                     ) 
-# # ax1 = plt.hist(noise_loss, bins=100, label='Noise', color='blue', alpha=0.5)
-# # ax2 = plt.hist(signal_loss, bins=100, label='Signal', color='red', alpha=0.5)
+# signal_loss, noise_loss = pf.loss_values_from_latent_space(signal_pred_values, noise_pred_values)
+# pf.noise_reduction_curve_single_model(model_name=f'Model_{folder}_model_{model_number}',
+#                                     fpr=0.95,
+#                                     x_low_lim=0.8,
+#                                     save_path='/home/halin/Autoencoder/Models/test_models/Encoder_loss',
+#                                     signal_loss=signal_loss,
+#                                     noise_loss=noise_loss,
+#                                     ) 
+# ax1 = plt.hist(noise_loss, bins=100, label='Noise', color='blue', alpha=0.5)
+# ax2 = plt.hist(signal_loss, bins=100, label='Signal', color='red', alpha=0.5)
 
-# # plt.scatter([[1,2,3,4,5,6,7]]*number,signal_pred_values[:number], color='green', label='Signals', alpha=0.5)
-# signal_pred_values =  np.transpose(signal_pred_values)
-# noise_pred_values = np.transpose(noise_pred_values)
-# plt.scatter(signal_pred_values[0], signal_pred_values[1], color='blue',label='Signal', alpha=0.1)
+# plt.scatter([[1,2,3,4,5,6,7]]*number,signal_pred_values[:number], color='green', label='Signals', alpha=0.5)
+signal_pred_values =  np.transpose(signal_pred_values)
+noise_pred_values = np.transpose(noise_pred_values)
+plt.scatter(signal_pred_values[0], signal_pred_values[1], color='blue',label='Signal', alpha=0.1)
 
-# plt.scatter(noise_pred_values[0],noise_pred_values[1], color='red', label='Noise', alpha=0.8) 
+plt.scatter(noise_pred_values[0],noise_pred_values[1], color='red', label='Noise', alpha=0.8) 
 
-# plt.xlim(-5,5)
-# plt.ylim(-5,5)
-# plt.grid()
-# plt.legend()
-# plt.savefig('/home/halin/Autoencoder/Models/test_models/test_encoder_plot.png')
-# plt.show()
-# plt.cla()                                                 
+plt.xlim(-5,5)
+plt.ylim(-5,5)
+plt.grid()
+plt.legend()
+plt.savefig('/home/halin/Autoencoder/Models/test_models/test_encoder_plot_1.png')
+plt.show()
+plt.cla()                                                 
 
 
 
@@ -370,7 +370,7 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 # 							              end_model=end_model, #exclusive	
 #                                         number_of_models=1000, 
 #                                         terms_of_condition ='Act. last layer', #'', #'Learning rate', #Epochs
-#                                         value_of_condition ='linear', #'', #'tanh',#0.001, #
+#                                         value_of_condition ='tanh', #'', #'tanh',#0.001, #
 #                                         comparison = 'equal',
 #                                         x_low_lim = x_low_lim,
 #                                         save_path=save_path,
@@ -388,7 +388,7 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 #                                                 'Act. last layer' 
 #                                                 ]) #'Activation func. rest'Act. last layer linear
 
-##Filter models with greater than 150 epochs                                    
+# Filter models with greater than 150 epochs                                    
 # result_path = pf.find_best_model_in_folder(start_model=start_model,
 #                             end_model=end_model,
 #                             terms_of_condition='Epochs',
@@ -491,26 +491,26 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 #                                       'Latent space',
 #                                       #'Act. last layer',
 #                                       ] )
-##Latent size
-# result_path = pf.find_best_model_in_folder(start_model=start_model,
-#                             end_model=end_model,
-#                             terms_of_condition='Latent space',
-#                               value_of_condition=2,
-#                               number_of_models=10,
-#                               comparison='equal',
-#                               result_path=result_path,
-#                               save_path=save_path,
-#                               x_low_lim=x_low_lim,
-#                               prefix=prefix,
-#                               headers=['Model name', 
-#                                       'Epochs', 
-#                                       'Number of filters',  
-#                                       'Kernel', 
-#                                       'Batch',
-#                                       #'Flops',
-#                                       'Latent space',
-#                                       'Act. last layer',
-#                                       ] )                                  
+#Latent size
+result_path = pf.find_best_model_in_folder(start_model=start_model,
+                            end_model=end_model,
+                            terms_of_condition='Latent space',
+                              value_of_condition=2,
+                              number_of_models=20,
+                              comparison='equal',
+                              result_path=result_path,
+                              save_path=save_path,
+                              x_low_lim=x_low_lim,
+                              prefix=prefix,
+                              headers=['Model name', 
+                                      'Epochs', 
+                                      'Number of filters',  
+                                      'Kernel', 
+                                      'Batch',
+                                      #'Flops',
+                                      'Latent space',
+                                      'Act. last layer',
+                                      ] )                                  
                                 
 
 ####################                           ######################
@@ -855,13 +855,13 @@ from Model_classes.ConvAutoencoder import ConvAutoencoder
 #     imgplot = plt.imshow(img)
 #     plt.savefig(save_path)
 
-x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data()
-model = load_model('/home/halin/Autoencoder/Models/CNN_171/CNN_171_model_1.h5')
-signal_loss, noise_loss = pf.costum_loss_values(model=model,x=x_test,smask=smask_test)
-save_path = '/home/halin/Autoencoder/Pictures/Best_model'
-pf.hist(path=save_path,signal_loss=signal_loss,noise_loss=noise_loss,)
+# x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data()
+# model = load_model('/home/halin/Autoencoder/Models/CNN_171/CNN_171_model_1.h5')
+# signal_loss, noise_loss = pf.costum_loss_values(model=model,x=x_test,smask=smask_test)
+# save_path = '/home/halin/Autoencoder/Pictures/Best_model'
+# pf.hist(path=save_path,signal_loss=signal_loss,noise_loss=noise_loss,)
 
-model = load_model('/home/halin/Autoencoder/Models/CNN_195/CNN_195_model_1.h5')
-signal_loss, noise_loss = pf.costum_loss_values(model=model,x=x_test,smask=smask_test)
-save_path = '/home/halin/Autoencoder/Pictures/Big_model'
-pf.hist(path=save_path,signal_loss=signal_loss,noise_loss=noise_loss,)
+# model = load_model('/home/halin/Autoencoder/Models/CNN_195/CNN_195_model_1.h5')
+# signal_loss, noise_loss = pf.costum_loss_values(model=model,x=x_test,smask=smask_test)
+# save_path = '/home/halin/Autoencoder/Pictures/Big_model'
+# pf.hist(path=save_path,signal_loss=signal_loss,noise_loss=noise_loss,)

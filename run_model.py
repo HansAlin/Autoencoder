@@ -53,11 +53,11 @@ def activation_function_6(x):
 #   are the special kinds of signals? 
 # # Test integration av signals and noise
 
-filterss = [[32,64,128,256,512]] #,[4,8,16,32,64],[16,32,64,128,256], Next time ,, [256],[128]       
+filterss = [[2,4,8]] #,[4,8,16,32,64],[16,32,64,128,256], Next time ,, [256],[128]       
 model_number = 1 										# Naming the models 											
 conv_in_rows = [1] 									# Number of equal layers in a row
 activation_functions = ['relu'] #  
-latent_sizes = [8,128]# Next time [] ,64,128,256,512  
+latent_sizes = [2]# Next time [] ,64,128,256,512  
 kernels = [9] #3
 last_activation_functions=['linear']#, 'linear',   'relu'
 learning_rates = [0.001]
@@ -79,7 +79,7 @@ if 0.0 in signal_ratios and len(signal_ratios) == 1:
 verbose=1
 fpr=0.05  
 x_low_lim = 0.75
-folder = 196
+folder = 197 
 number_of_data_files_to_load = 10 # Max 10
 data_url = '/home/halin/Autoencoder/Data/'
 
