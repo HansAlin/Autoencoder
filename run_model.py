@@ -112,7 +112,7 @@ x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_
 																																		 data_path=data_url, 
 																																		 small_test_set=1000,
 																																		 number_of_files=number_of_data_files_to_load)
-plot_examples = np.load('/home/halin/Autoencoder/Data/plot_examples.npy')
+plot_examples = np.load('/Data/plot_examples.npy')
 number_of_same_model = len(epoch_distribution)
 
 for filters in filterss:
