@@ -33,7 +33,7 @@ def load_data(all_signals_for_testing=True, all_samples=True, data_path='/home/h
       x_test, y_test, smask_test, signal, noise, std, mean
     
   """
-  DATA_URL = data_path + 'trimmed100_data_noise_3.6SNR_1ch_0000.npy'#/home/halin/Autoencoder/Data/trimmed100_data_noise_3.6SNR_1ch_0000.npy
+  DATA_URL = '/home/halin/Autoencoder/Data/trimmed100_data_noise_3.6SNR_1ch_0000.npy' #data_path + 'trimmed100_data_noise_3.6SNR_1ch_0000.npy'#
   noise = np.load(DATA_URL)
 
   for i in range(1,number_of_files):
