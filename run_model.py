@@ -31,6 +31,7 @@ from tensorflow.keras import backend as K
 
 
 # Specifiy the hyperparamters
+# Hej
 
 filterss = [[2,4,8]] 														# Specify the number of filters in each layer   
 model_number = 1 																# Naming the models 											
