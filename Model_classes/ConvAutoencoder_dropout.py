@@ -10,11 +10,8 @@ import glob
 import Help_functions.plot_functions as pf
 import Help_functions.data_manage as dm
 
-class ConvAutoencoder:
-  ###
-  
+class ConvAutoencoder_dropout:
   def build(data, filters=[32,64,128], activation_function='relu', latent_size=6, kernel=3, last_activation_function='linear', convs=1):
-    
     input_data = keras.Input(shape=data[0].shape)
 
     layer = input_data
@@ -28,11 +25,12 @@ class ConvAutoencoder:
         else: 
           layer = Conv1D(filters=f, kernel_size=kernel, strides=1, padding='same', activation=activation_function)(layer)
         layer = BatchNormalization()(layer)  
+        layer = Dropout(0.2)(layer)
       layer = MaxPooling1D(2)(layer)
 
     volumeSize = K.int_shape(layer)  
     layer = Flatten()(layer)
-    layer = Dense(latent_size)(layer)  
+    layer = Dense(latent_size, activation=activation_function)(layer)  
 
     encoder = keras.Model(input_data, layer, name='encoder')
     
@@ -55,18 +53,18 @@ class ConvAutoencoder:
           layer = LeakyReLU()(layer)
         else: 
           layer = Conv1D(filters=f, kernel_size=kernel, padding=padding, activation=activation_function)(layer)
-      layer = BatchNormalization()(layer) 
+      layer = BatchNormalization()(layer)
+      layer = Dropout(0.2)(layer) 
     # TODO check if this is useful ?
-    if activation_function == 'LeakyRelu':
+    if last_activation_function == 'LeakyRelu':
         layer = Conv1D(filters=f, kernel_size=kernel, padding=padding)(layer)
         layer = LeakyReLU()(layer)
-    else:    
-      layer = Conv1D(filters=1, kernel_size=kernel, padding='same', activation=activation_function)(layer) 
-    
-    if last_activation_function == 'linear': 
-       layer = Dense(units=1)(layer)
     else:   
-      layer = Dense(units=1,activation=last_activation_function)(layer)
+      if last_activation_function == 'linear': 
+        layer = Conv1D(filters=1, kernel_size=kernel, padding='same')(layer) 
+      else:
+         layer = Conv1D(filters=1, kernel_size=kernel, padding='same', activation=last_activation_function)(layer)
+    
     outputs = Reshape((100,1))(layer)  
     
     latentInputs = keras.Input(shape=(latent_size,))

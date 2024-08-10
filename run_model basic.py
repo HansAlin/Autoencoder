@@ -1,16 +1,14 @@
 import os
 from re import M
-
 from gpuutils import GpuUtils
 GpuUtils.allocate(gpu_count=1, framework='keras')
-
 import tensorflow as tf
 physical_devices = tf.config.list_physical_devices('GPU')
 for device in physical_devices:
-    tf.config.experimental.set_memory_growth(device, True) 
-
+    tf.config.experimental.set_memory_growth(device, True)
 import matplotlib.pyplot as plt
 import pandas as pd
+
 
 import Help_functions.creating_models as cm
 import Help_functions.plot_functions as pf
@@ -21,19 +19,15 @@ from tensorflow.keras.models import load_model
 from tensorflow import keras
 from keras_flops import get_flops
 from contextlib import redirect_stdout
-from Model_classes.NewPhysicsAutoencoder import NewPhysicsAutoencoder
-from Model_classes.SecondCNNModel import SecondCNNModel
-from Model_classes.DenseModel import DenseModel
-from Model_classes.ConvAutoencoder import ConvAutoencoder
-from Model_classes.ConvAutoencoder_dropout import ConvAutoencoder_dropout
+
+from Model_classes.ConvAutoencoder_U_net import ConvAutoencoder_U_net
 from tensorflow.keras import backend as K
 
 
 
 # Specifiy the hyperparamters
-# Hej
 
-filterss = [[2,4,8]] 														# Specify the number of filters in each layer   
+filterss = [[16,32]] 														# Specify the number of filters in each layer   
 model_number = 1 																# Naming the models 											
 conv_in_rows = [1] 															# Number of equal layers in a row, 
 activation_functions = ['relu'] 								# Activation function in the layers 
@@ -42,8 +36,7 @@ kernels = [9] 																	# Kernel/Filter size
 last_activation_functions=['linear']						# Last activation function
 learning_rates = [0.001]												# Learning rate
 batches=[1024]																	# Size of the batches
-epoch_distribution =[2000]											# Number of epochs, if one needs to test differnt number of epochs
-model_type ='ConvAutoencoder_dropout'						# Choose a model, these can be used
+epoch_distribution =[2000]											# Number of epochs, if one needs to test differnt number of epochs					# Choose a model, these can be used
 																								# 'ConvAutoencoder' 
 																		 						# 'DenseModel' 
 																		 						# 'NewPhysicsAutoencoder'
@@ -81,10 +74,10 @@ folder = 999
 number_of_data_files_to_load = 10 							# Max 10
 
 # Specify where the data is stored
-data_url = '/home/halin/Autoencoder/Data/'
+#data_url = '/Autoencoder/Data/'
 
 # Specify where to save results from models
-folder_path = '/home/halin/Autoencoder/Models/'
+folder_path = '/Models/'
 
 results = pd.DataFrame(columns=['Model name',
 																'Model type',
@@ -112,7 +105,7 @@ results = pd.DataFrame(columns=['Model name',
 recycling_model = ''
 x_test, y_test, smask_test, signal, noise, std, mean = dm.load_data(all_signals_for_testing=all_signals,
 																																		 all_samples=(not test_run),						
-																																		 data_path=data_url, 
+																																		  
 																																		 small_test_set=1000,
 																																		 number_of_files=number_of_data_files_to_load)
 plot_examples = np.load('/home/halin/Autoencoder/Data/plot_examples.npy')
@@ -132,49 +125,14 @@ for filters in filterss:
 									for signal_ratio in signal_ratios:
 										model_name = f'CNN_{folder}_model_{model_number}'
 										save_path = folder_path + f'CNN_{folder}/' + model_name
-										if number_of_same_model == 1 or i == 0:
-											if model_type == 'ConvAutoencoder':
-														(encoder, decoder, autoencoder) = ConvAutoencoder.build(data=x_test,
+										(encoder, decoder, autoencoder) = ConvAutoencoder_U_net.build(data=x_test,
 																																					filters=filters, 
 																																					activation_function=activation_function,
 																																					latent_size=latent_size,
 																																					kernel=kernel,
 																																					last_activation_function=last_activation_function,
 																																					convs=conv_in_row )
-											elif model_type == 'ConvAutoencoder_dropout':
-												(encoder, decoder, autoencoder) = ConvAutoencoder_dropout.build(data=x_test,
-																																					filters=filters, 
-																																					activation_function=activation_function,
-																																					latent_size=latent_size,
-																																					kernel=kernel,
-																																					last_activation_function=last_activation_function,
-																																					convs=conv_in_row )
-											elif model_type == 'NewPhysicsAutoencoder':
-														(encoder, decoder, autoencoder) = NewPhysicsAutoencoder.build(data=x_test,
-																																					filters=filters, 
-																																					activation_function=activation_function,
-																																					latent_size=latent_size,
-																																					kernel=kernel,
-																																					last_activation_function=last_activation_function )
-											elif model_type == 'SecondCNNModel':
-														(encoder, decoder, autoencoder) = SecondCNNModel.build(data=x_test,
-																																					filters=filters, 
-																																					activation_function=activation_function,
-																																					latent_size=latent_size,
-																																					kernel=kernel,
-																																					last_activation_function=last_activation_function,
-																																					convs=conv_in_row )
-											elif model_type == 'DenseModel':
-														(encoder, decoder, autoencoder) = DenseModel.build(data=x_test,
-																																					filters=filters, 
-																																					activation_function=activation_function,
-																																					latent_size=latent_size,
-																																					kernel=kernel,
-																																					last_activation_function=last_activation_function )
-											epochs = epoch_distribution[i]
-										else:
-											autoencoder = recycling_model
-											epochs = epoch_distribution[i]
+										epochs = epoch_distribution[i]
 											
 										adam = keras.optimizers.Adam(learning_rate=learning_rate) 
 										autoencoder.compile(

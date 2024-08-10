@@ -77,14 +77,14 @@ all_signals = True
 plot =True
 small_test_set = 2000
 activation_function_bottlenecks= [True]#,True
-activation_function_last_layers=['tanh']
-                                # activation_function_1, 
-                                #  activation_function_2, 
-                                #  activation_function_3,
-                                #  activation_function_4,
-                                #  activation_function_5,
-                                #  activation_function_6, 
-                                #  leakyrelu]#, 
+activation_function_last_layers=['tanh',
+                                activation_function_1, 
+                                 activation_function_2, 
+                                 activation_function_3,
+                                 activation_function_4,
+                                 activation_function_5,
+                                 activation_function_6, 
+                                 leakyrelu]#, 
 
 fpr = 0.05
 verbose = 1

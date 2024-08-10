@@ -6,16 +6,16 @@ from keras_flops import get_flops
 from tensorflow.keras import backend as K
 import numpy as np
 import glob
-import plot_functions as pf
-import data_manage as dm
+import Help_functions.plot_functions as pf
+import Help_functions.data_manage as dm
 
 class DenseModel:
   def build(data, filters=[128,64,32], activation_function='relu', latent_size=6, kernel=3, last_activation_function='linear'):
     """
       From: Searching for new physics with deep autoencoders
       Arg:
-        data: train or test data
-        filters: equal to units
+        data: train or test data ( ,100,1)
+        filters: equal to units in this case
     """
     
     input_data = keras.Input(shape=data[0].shape)
